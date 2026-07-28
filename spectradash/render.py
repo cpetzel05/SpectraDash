@@ -634,10 +634,9 @@ def _render_premium_lcd(w: dict[str, Any], c: dict[str, Any], mode: str, frame: 
     # clearly separated rows so none of the text can overlap.
     aqi_value = w.get("aqi", "—")
     aqi_label = str(w.get("aqi_label", "Unavailable")).upper()
-    if c.get("show_environment", True) and c.get("show_air_quality", True):
-        d.text((905, 390), "AIR QUALITY", font=font(18, True), fill=text)
-        d.text((905, 420), str(aqi_value), font=font(31, True), fill=good)
-        _fit(d, aqi_label, (905, 460, 1185, 500), 18, good, False)
+    d.text((905, 390), "AIR QUALITY", font=font(18, True), fill=text)
+    d.text((905, 420), str(aqi_value), font=font(31, True), fill=good)
+    _fit(d, aqi_label, (905, 460, 1185, 500), 18, good, False)
     _compass(d,(1210,145,1565,500),w.get("wind_direction",0),f'{w.get("wind_compass","—")} {w.get("wind_speed","—")}',warm)
 
     # Seven large forecast cards.
@@ -665,15 +664,7 @@ def _render_premium_lcd(w: dict[str, Any], c: dict[str, Any], mode: str, frame: 
         d.rounded_rectangle((875, 130, 1195, 220), radius=14, fill=P["red"], outline=border, width=2)
         _fit(d, alert.get("title","WEATHER ALERT").upper(), (890,142,1180,177), 20, P["white"], True)
         _fit(d, alert.get("message",""), (890,178,1180,212), 14, P["white"], False)
-    footer=f'LAST UPDATED: {stamp.strftime("%b %-d, %Y %-I:%M %p").upper()} · {appearance.upper()} MODE'
-    if c.get("show_system_status", False):
-        try:
-            from .system import system_info
-            info=system_info(); temp=info.get("temperature_c")
-            footer += f' · PI {temp if temp is not None else "—"}°C · RAM {info.get("memory_percent","—")}% · DISK {info.get("disk_percent","—")}%'
-        except Exception:
-            pass
-    d.text((800,1182),footer,font=font(16),fill=text,anchor='ms')
+    d.text((800,1182),f'LAST UPDATED: {stamp.strftime("%b %-d, %Y %-I:%M %p").upper()} · {appearance.upper()} MODE',font=font(17),fill=text,anchor='ms')
     canonical=quantize_spectra(img,fast=(mode=="lite" and c.get("lite_reduced_dither",True)))
     return adapt_to_profile(canonical,c,fast=(mode=="lite" and c.get("lite_reduced_dither",True)))
 
@@ -728,20 +719,16 @@ def render_weather(w: dict[str,Any], c: dict[str,Any]) -> Image.Image:
     metrics=[
         ("Humidity",f'{w["humidity"]}%',secondary,w["humidity"]/100),
         ("Dew point",f'{w["dew_point"]}{w["temperature_symbol"]}',primary,None),
+        ("AQI",f'{w["aqi"] if w["aqi"] is not None else "—"} {w["aqi_label"]}',P["green"],(w["aqi"] or 0)/300),
+        ("UV index",w["uv_index"] if w["uv_index"] is not None else "—",P["red"],(w["uv_index"] or 0)/12),
+        ("Pressure",f'{w["pressure"]} hPa {"↑" if w["pressure_delta"]>1 else "↓" if w["pressure_delta"]<-1 else "→"}',primary,None),
+        ("Visibility",f'{w["visibility"]} {w["visibility_unit"]}',secondary,None),
+        ("Cloud cover",f'{w["cloud_cover"]}%',P["blue"],w["cloud_cover"]/100),
     ]
-    if c.get("show_environment", True):
-        if c.get("show_air_quality", True):
-            metrics.append(("AQI",f'{w["aqi"] if w["aqi"] is not None else "—"} {w["aqi_label"]}',P["green"],(w["aqi"] or 0)/300))
-        metrics.extend([
-            ("UV index",w["uv_index"] if w["uv_index"] is not None else "—",P["red"],(w["uv_index"] or 0)/12),
-            ("Pressure",f'{w["pressure"]} hPa {"↑" if w["pressure_delta"]>1 else "↓" if w["pressure_delta"]<-1 else "→"}',primary,None),
-            ("Visibility",f'{w["visibility"]} {w["visibility_unit"]}',secondary,None),
-            ("Cloud cover",f'{w["cloud_cover"]}%',P["blue"],w["cloud_cover"]/100),
-        ])
     for i,(label,value,col,gauge) in enumerate(metrics):
         row=i//4; coln=i%4; x=sx+coln*(cw+gap); y=145+row*(ch+12); _metric(d,(x,y,x+cw,y+ch),label,value,col,gauge)
     _compass(d,(sx+3*(cw+gap),145+ch+12,sx+4*cw+3*gap,145+2*ch+12),w["wind_direction"],f'{w["wind_compass"]} {w["wind_speed"]}',primary)
-    if c.get("show_hourly_graph",True) and c.get("graph_style","premium") != "off": _hourly_graph(d,w["hourly"],(785,350,1570,535),w["temperature_symbol"],primary,secondary)
+    if c.get("show_hourly_graph",True): _hourly_graph(d,w["hourly"],(785,350,1570,535),w["temperature_symbol"],primary,secondary)
     # Solar strip and summary.
     d.rounded_rectangle((30,550,1570,610),radius=18,fill=P["white"],outline=P["black"],width=3)
     d.text((52,580),f'☀  Sunrise {w["sunrise"]}     Sunset {w["sunset"]}',font=font(19,True),fill=P["red"],anchor="lm")
@@ -753,15 +740,9 @@ def render_weather(w: dict[str,Any], c: dict[str,Any]) -> Image.Image:
         d.text((600,580),moon_text,font=font(18,True),fill=P["blue"],anchor="lm")
     if c.get("show_weather_summary",True): _fit(d,w.get("summary",""),(900,558,1545,603),18,P["black"],False)
     # Seven-day outlook.
-    active_alert = w.get("alerts", [None])[0] if c.get("show_weather_alerts", True) and w.get("alerts") else None
-    if active_alert:
-        d.rounded_rectangle((30,618,1570,667),radius=14,fill=P["red"],outline=P["black"],width=3)
-        _fit(d, str(active_alert.get("title","WEATHER ALERT")).upper(), (48,624,520,660), 21, P["white"], True)
-        _fit(d, str(active_alert.get("message","")), (535,624,1548,660), 17, P["white"], False)
-    else:
-        d.text((38,632),"7-DAY OUTLOOK",font=font(24,True),fill=primary)
-        if c.get("show_forecast_updated", True):
-            d.text((1560,634), f'Forecast updated {stamp.strftime("%b %-d, %-I:%M %p")}', font=font(16,True), fill=P["black"], anchor="ra")
+    d.text((38,632),"7-DAY OUTLOOK",font=font(24,True),fill=primary)
+    if c.get("show_forecast_updated", True):
+        d.text((1560,634), f'Forecast updated {stamp.strftime("%b %-d, %-I:%M %p")}', font=font(16,True), fill=P["black"], anchor="ra")
     # A rolling forecast must remain chronological; weekday-start preferences apply to calendar widgets, not forecast cards.
     days=w["daily"][:7]
     date_style = _resolved_forecast_date_style(c)
@@ -793,15 +774,6 @@ def render_weather(w: dict[str,Any], c: dict[str,Any]) -> Image.Image:
         d.text((x+cwf//2,y0+334),f'Wind {day["wind"]} {w["wind_unit"]}',font=font(16),fill=P["black"],anchor="mm")
         d.text((x+cwf//2,y0+372),f'UV {day["uv_max"] if day["uv_max"] is not None else "—"}',font=font(16,True),fill=P["green"],anchor="mm")
         _fit(d,day["description"],(x+10,y0+395,x+cwf-10,y0+472),19,P["black"],False)
-    if c.get("show_system_status", False):
-        try:
-            from .system import system_info
-            info=system_info(); temp=info.get("temperature_c")
-            status_line=f'PI STATUS · CPU {info.get("cpu_percent","—")}% · {temp if temp is not None else "—"}°C · RAM {info.get("memory_percent","—")}% · DISK {info.get("disk_percent","—")}%'
-            d.rectangle((30,1168,1570,1198),fill=P["white"])
-            d.text((800,1183),status_line,font=font(15,True),fill=P["black"],anchor="mm")
-        except Exception:
-            pass
     # Plugin widgets are placed using the same 12 x 12 coordinate system as Screen Designer.
     if c.get("designer_enabled"):
         try:

@@ -1,11 +1,3 @@
-## 8.0.0-rc18.2
-
-- Removed the preset Phoenix location from clean installations.
-- Added first-run redirection and prevented weather refreshes until location setup is complete.
-- Added configuration export, validated JSON import, reset-to-defaults, and factory reset.
-- Added a safe uninstall script that preserves user data and the Waveshare driver unless explicitly requested.
-- Added first-run, configuration-management, and uninstall documentation.
-
 ## 8.0.0-rc17
 
 - Added visual Theme Gallery and community theme-pack foundation.
@@ -107,19 +99,3 @@
 - Added display selection and density controls to Settings.
 - Added profile API, automated profile tests, preview generator, CI, contribution guide, hardware test matrix, and GitHub issue templates.
 - Removed generated caches from the release package.
-
-## 8.0.0-rc18.1
-
-### Developer Mode hotfix
-- Restored the full performance snapshot and runtime information alongside the temperature-unit selector.
-- Added live five-second diagnostics updates for daemon health, refresh timing, CPU, memory, disk, temperature, host, theme, layout, and display profile.
-- Improved unit selection feedback and responsive Developer Mode layout.
-- Preserved the original test bench, logs, support bundle, and maintenance actions.
-
-## 8.0.0-rc18
-
-- Added the universal weather-alert ribbon to the Weather Station layout.
-- Unified visibility controls for environmental data, AQI, graphs, astronomy, and system status.
-- Added an optional Raspberry Pi health footer to Weather Station and Premium LCD layouts.
-- Added a Developer Mode Fahrenheit/Celsius switch that saves the setting and queues a refresh.
-- Preserved the shared realistic Moon renderer across all layouts.

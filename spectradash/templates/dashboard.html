@@ -1,9 +1,38 @@
 {% extends "base.html" %}
-{% block title %}Dashboard · SpectraDash{% endblock %}
 {% block content %}
-<section class="hero"><div><p class="eyebrow">SpectraDash Weather Studio 3</p><h1>Your six-color weather station</h1><p>Weather, air quality, astronomy, hourly trends, and a seven-day outlook—rendered specifically for your 13.3-inch Spectra 6 panel.</p></div><div class="hero-actions"><button id="refreshButton" class="button primary"><span class="refresh-icon">↻</span> Refresh preview</button><button id="physicalRefreshButton" class="button secondary"><span class="refresh-icon">↻</span> Send to panel now</button><button id="hardwareTestButton" class="button secondary">Run color test</button></div></section>
-<section class="status-grid"><article class="metric"><span>Display</span><strong id="stateText">{{ status.state|title }}</strong><small id="statusMessage">{{ status.message }}</small></article><article class="metric"><span>Last refresh</span><strong id="lastRefresh">{{ status.last_refresh or 'Not yet' }}</strong><small>Every {{ config.refresh_minutes }} minutes</small></article><article class="metric"><span>Panel output</span><strong>{{ 'Automatic' if config.physical_display else 'Manual' }}</strong><small>Last write: <span id="lastPhysicalRefresh">{{ status.last_physical_refresh or 'Not yet' }}</span></small></article><article class="metric"><span>Pi health</span><strong>{{ system.temperature_c if system.temperature_c is not none else '—' }}°C</strong><small>{{ system.cpu_percent }}% CPU · {{ system.memory_percent }}% RAM</small></article></section>
-<section class="layout-grid"><article class="panel preview-panel"><div class="panel-heading"><div><p class="eyebrow">Exact panel image</p><h2>Live preview</h2></div><span id="liveBadge" class="badge {{ status.state }}">{{ status.state }}</span></div><div class="epaper-frame"><img id="previewImage" src="{{ url_for('preview') }}?v={{ status.last_refresh or 0 }}" alt="Current e-paper preview"></div><p class="hint">The preview is the same PNG sent through the official Waveshare <code>getbuffer()</code> pipeline.</p></article>
-<aside class="side-stack"><article class="panel"><p class="eyebrow">Studio profile</p><h2>{{ config.theme|title }} · {{ config.layout_preset|replace('-', ' ')|title }}</h2><dl class="details"><div><dt>Location</dt><dd>{{ config.location_name }}</dd></div><div><dt>Rotation</dt><dd>{{ config.rotation }}°</dd></div><div><dt>Hourly graph</dt><dd>{{ 'On' if config.show_hourly_graph else 'Off' }}</dd></div><div><dt>Next refresh</dt><dd id="nextRefresh">{{ status.next_refresh or 'After next update' }}</dd></div></dl><a class="button secondary full" href="{{ url_for('settings') }}">Open Weather Studio</a></article><article class="panel accent-panel"><p class="eyebrow">New in version 3</p><h2>More useful at a glance</h2><p>12-hour temperature graph, AQI, UV, pressure trend, visibility, cloud cover, sunrise, sunset, and moon phase.</p><div class="palette"><i class="black"></i><i class="white"></i><i class="yellow"></i><i class="red"></i><i class="blue"></i><i class="green"></i></div></article></aside></section>
+{% if weather.alerts %}
+<section class="alerts">{% for alert in weather.alerts %}<article class="{{ alert.severity }}"><strong>{{ alert.title }}</strong><span>{{ alert.body }}</span></article>{% endfor %}</section>
+{% endif %}
+<section class="hero layout-{{ config.layout }}">
+<div class="weather-icon"><img src="/static/icons/{{ weather.current.icon }}.svg" alt=""></div>
+<div><div class="eyebrow">{{ weather.current.condition }}</div><div class="temperature">{{ "%.0f"|format(weather.current.temperature) }}°</div><div>Feels like {{ "%.0f"|format(weather.current.feels_like) }}°</div></div>
+<div class="hero-side"><div>Updated {{ weather.updated[11:16] }}</div><div>{{ weather.timezone }}</div><div>Source: {{ weather.source }}</div></div>
+</section>
+
+<section class="metrics">
+<div><span>Humidity</span><strong>{{ weather.current.humidity }}%</strong></div>
+<div><span>Dew point</span><strong>{{ "%.0f"|format(weather.current.dew_point) }}°</strong></div>
+<div><span>Wind</span><strong>{{ "%.1f"|format(weather.current.wind_speed) }}</strong></div>
+<div><span>Gusts</span><strong>{{ "%.1f"|format(weather.current.wind_gust) }}</strong></div>
+<div><span>Pressure</span><strong>{{ "%.0f"|format(weather.current.pressure) }} hPa</strong></div>
+<div><span>UV index</span><strong>{{ "%.1f"|format(weather.current.uv_index) }}</strong></div>
+<div><span>US AQI</span><strong>{{ weather.air_quality.us_aqi }}</strong><small>{{ weather.air_quality.category }}</small></div>
+<div><span>Moon</span><strong>{{ weather.moon.name }}</strong><small>{{ weather.moon.illumination }}% illuminated</small></div>
+</section>
+
+<section class="panel">
+<div class="panel-title"><h2>7-Day Forecast</h2><span>Sunrise {{ weather.sunrise }} · Sunset {{ weather.sunset }}</span></div>
+<div class="forecast">
+{% for day in weather.forecast %}
+<article>
+<div><strong>{{ day.date }}</strong><span>{{ day.condition }}</span></div>
+<img src="/static/icons/{{ day.icon }}.svg" alt="">
+<div class="highlow">{{ "%.0f"|format(day.high) }}° <span>/ {{ "%.0f"|format(day.low) }}°</span></div>
+<div>Rain {{ day.rain }}%</div><div>UV {{ "%.1f"|format(day.uv_index|default(0)) }}</div>
+</article>
+{% endfor %}
+</div>
+</section>
+
+<form method="post" action="/refresh"><button class="primary">Render 13.3-inch Preview</button></form>
 {% endblock %}
-{% block scripts %}<script>window.SPECTRADASH_PAGE='dashboard';</script>{% endblock %}

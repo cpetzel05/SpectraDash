@@ -1,75 +1,11 @@
 {% extends "base.html" %}
 {% block title %}Developer Mode · SpectraDash{% endblock %}
 {% block content %}
-<section class="page-heading">
-  <div>
-    <p class="eyebrow">Advanced tools</p>
-    <h1>Developer Mode</h1>
-    <p>Test services, inspect live performance, change test units, follow logs, and export a safe support bundle.</p>
-  </div>
-  <span id="daemonPill" class="status-pill {{ 'ok' if daemon.healthy else 'off' }}">Daemon {{ 'healthy' if daemon.healthy else 'unhealthy' }}</span>
-</section>
-
+<section class="page-heading"><div><p class="eyebrow">Advanced tools</p><h1>Developer Mode</h1><p>Test services, inspect performance, follow logs, and export a safe support bundle.</p></div><span class="status-pill {{ 'ok' if daemon.healthy else 'off' }}">Daemon {{ 'healthy' if daemon.healthy else 'unhealthy' }}</span></section>
 <section class="developer-grid">
-  <article class="panel">
-    <h2>Test bench</h2>
-    <div class="dev-actions">
-      <button class="button secondary" data-action="weather">Test Weather API</button>
-      <button class="button secondary" data-action="preview">Render Preview</button>
-      <button class="button secondary" data-action="display">Test Physical Display</button>
-      <button class="button secondary" data-action="scheduler">Restart Scheduler</button>
-    </div>
-    <pre id="testResult" class="console small">Ready.</pre>
-  </article>
-
-  <article class="panel">
-    <div class="panel-heading">
-      <div><p class="eyebrow">Live diagnostics</p><h2>Performance snapshot</h2></div>
-      <span id="statusUpdated" class="badge">Live</span>
-    </div>
-    <dl class="details" id="performanceDetails">
-      <div><dt>Last refresh</dt><dd id="lastRefresh">{{ status.last_successful_refresh or 'Not yet' }}</dd></div>
-      <div><dt>Refresh duration</dt><dd id="refreshDuration">{{ status.refresh_duration_seconds or '—' }} seconds</dd></div>
-      <div><dt>CPU usage</dt><dd id="cpuPercent">{{ system.cpu_percent }}%</dd></div>
-      <div><dt>Memory usage</dt><dd id="memoryPercent">{{ system.memory_percent }}%</dd></div>
-      <div><dt>Disk usage</dt><dd id="diskPercent">{{ system.disk_percent }}%</dd></div>
-      <div><dt>CPU temperature</dt><dd id="cpuTemperature">{{ system.temperature_c if system.temperature_c is not none else '—' }}°C</dd></div>
-      <div><dt>Daemon heartbeat</dt><dd id="heartbeatAge">{{ daemon.heartbeat_age_seconds if daemon.heartbeat_age_seconds is not none else '—' }} seconds</dd></div>
-      <div><dt>Host</dt><dd id="hostName">{{ system.hostname }}</dd></div>
-    </dl>
-    <a class="button primary" href="{{ url_for('developer_support_bundle') }}">Export Support Bundle</a>
-  </article>
-
-  <article class="panel">
-    <h2>Units & localization</h2>
-    <p>Switch the complete weather pipeline between Fahrenheit and Celsius without leaving Developer Mode. This does not hide or replace any diagnostics.</p>
-    <div class="segmented-control" role="group" aria-label="Temperature units">
-      <button class="button secondary unit-button {{ 'selected' if config.units != 'celsius' else '' }}" data-units="fahrenheit" aria-pressed="{{ 'true' if config.units != 'celsius' else 'false' }}">Use °F</button>
-      <button class="button secondary unit-button {{ 'selected' if config.units == 'celsius' else '' }}" data-units="celsius" aria-pressed="{{ 'true' if config.units == 'celsius' else 'false' }}">Use °C</button>
-    </div>
-    <p class="hint">Current setting: <strong id="currentUnits">{{ "Celsius" if config.units == "celsius" else "Fahrenheit" }}</strong>. Changing it queues a fresh render.</p>
-  </article>
-
-  <article class="panel">
-    <h2>Runtime information</h2>
-    <dl class="details">
-      <div><dt>SpectraDash</dt><dd>{{ version }}</dd></div>
-      <div><dt>Display profile</dt><dd id="displayProfile">{{ config.display_profile or 'Default profile' }}</dd></div>
-      <div><dt>Layout</dt><dd id="activeLayout">{{ config.layout or config.dashboard_layout or 'Weather Station' }}</dd></div>
-      <div><dt>Theme</dt><dd id="activeTheme">{{ config.theme or config.palette or 'Default' }}</dd></div>
-      <div><dt>Refresh interval</dt><dd>{{ config.refresh_minutes or config.refresh_interval_minutes or '—' }} minutes</dd></div>
-      <div><dt>Developer Mode</dt><dd>Enabled</dd></div>
-    </dl>
-  </article>
-
-  <article class="panel wide">
-    <div class="panel-heading">
-      <div><p class="eyebrow">Live output</p><h2>Application log</h2></div>
-      <button id="clearLogs" class="button secondary">Clear</button>
-    </div>
-    <pre id="liveLogs" class="console">Loading logs…</pre>
-    <p class="hint">Updates every three seconds. This view is limited to recent entries and the log is automatically rotated.</p>
-  </article>
+<article class="panel"><h2>Test bench</h2><div class="dev-actions"><button class="button secondary" data-action="weather">Test Weather API</button><button class="button secondary" data-action="preview">Render Preview</button><button class="button secondary" data-action="display">Test Physical Display</button><button class="button secondary" data-action="scheduler">Restart Scheduler</button></div><pre id="testResult" class="console small">Ready.</pre></article>
+<article class="panel"><h2>Performance snapshot</h2><dl class="details"><div><dt>Last refresh</dt><dd>{{ status.last_successful_refresh or 'Not yet' }}</dd></div><div><dt>Refresh duration</dt><dd>{{ status.refresh_duration_seconds or '—' }} seconds</dd></div><div><dt>CPU</dt><dd>{{ system.cpu_percent }}%</dd></div><div><dt>Memory</dt><dd>{{ system.memory_percent }}%</dd></div><div><dt>Temperature</dt><dd>{{ system.temperature_c or '—' }}°C</dd></div><div><dt>Heartbeat age</dt><dd>{{ daemon.heartbeat_age_seconds or '—' }} seconds</dd></div></dl><a class="button primary" href="{{ url_for('developer_support_bundle') }}">Export Support Bundle</a></article>
+<article class="panel wide"><div class="panel-heading"><div><p class="eyebrow">Live output</p><h2>Application log</h2></div><button id="clearLogs" class="button secondary">Clear</button></div><pre id="liveLogs" class="console">Loading logs…</pre><p class="hint">Updates every three seconds. This log is limited and automatically rotated.</p></article>
 </section>
 {% endblock %}
 {% block scripts %}<script src="{{ url_for('static', filename='developer.js') }}"></script>{% endblock %}

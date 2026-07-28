@@ -1,5 +1,5 @@
 [Unit]
-Description=SpectraDash web dashboard
+Description=SpectraDash weather dashboard
 After=network-online.target
 Wants=network-online.target
 
@@ -17,7 +17,6 @@ PrivateTmp=true
 ProtectSystem=strict
 ProtectHome=true
 ReadWritePaths=/etc/spectradash /var/lib/spectradash
-SupplementaryGroups=gpio spi
 
 [Install]
 WantedBy=multi-user.target

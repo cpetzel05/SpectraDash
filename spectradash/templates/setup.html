@@ -1,1 +1,49 @@
-{% extends "base.html" %}{% block title %}Setup · SpectraDash{% endblock %}{% block content %}<section class="page-heading"><div><p class="eyebrow">First-run setup</p><h1>Welcome to SpectraDash</h1><p>Configure the essentials, then refine everything in Weather Studio.</p></div></section>{% if request.args.get("message") %}<div class="notice success">{{ request.args.get("message") }}</div>{% endif %}{% if error %}<div class="notice error">{{ error }}</div>{% endif %}<form method="post" class="settings-grid"><section class="panel form-section"><h2>1. Location</h2><label>City, state, or ZIP<input name="location" value="{{ config.location_name or '' }}" placeholder="Example: 85001 or Seattle, WA" required></label><div class="two-col"><label>Temperature<select name="units"><option value="fahrenheit">Fahrenheit</option><option value="celsius">Celsius</option></select></label><label>Wind<select name="wind_units"><option value="mph">mph</option><option value="kmh">km/h</option></select></label></div></section><section class="panel form-section"><h2>2. Display</h2><label>Display model<select name="display_profile">{% for profile in profiles %}<option value="{{ profile.id }}" {{ 'selected' if config.display_profile==profile.id }}>{{ profile.manufacturer }} {{ profile.name }}</option>{% endfor %}</select></label><label>Refresh minutes<input name="refresh_minutes" type="number" min="15" max="720" value="{{ config.refresh_minutes }}"></label></section><section class="panel form-section"><h2>3. Experience</h2><label>Layout<select name="layout_preset"><option value="weather-station">Weather Station</option><option value="premium-lcd">Premium LCD</option><option value="forecast-first">Forecast First</option><option value="minimal">Minimal</option></select></label><label>Premium appearance<select name="premium_lcd_mode"><option value="automatic">Automatic</option><option value="light">Light</option><option value="dark">Dark</option></select></label><input type="hidden" name="theme" value="sunrise"><input type="hidden" name="icon_style" value="premium"></section><div class="form-actions"><button class="button primary" type="submit">Finish setup</button></div></form>{% endblock %}
+{% extends "base.html" %}
+{% block title %}Setup — SpectraDash{% endblock %}
+{% block content %}
+<section class="panel">
+<h1>Setup Wizard</h1>
+<p>Search by ZIP code or city, then choose a result.</p>
+<div class="location-search">
+<input id="locationQuery" value="{{ config.location_query }}" placeholder="ZIP code or city">
+<button type="button" onclick="findLocation()">Search</button>
+</div>
+<div id="locationResults" class="results"></div>
+<form method="post" class="form-grid">
+<input type="hidden" name="provider" value="open-meteo">
+<label>Location label<input id="locationName" name="location_name" value="{{ config.location_name }}"></label>
+<label>Search value<input name="location_query" value="{{ config.location_query }}"></label>
+<label>Latitude<input id="latitude" type="number" step="any" name="latitude" value="{{ config.latitude }}"></label>
+<label>Longitude<input id="longitude" type="number" step="any" name="longitude" value="{{ config.longitude }}"></label>
+<label>Units<select name="units"><option value="imperial" {% if config.units=="imperial" %}selected{% endif %}>Imperial</option><option value="metric" {% if config.units=="metric" %}selected{% endif %}>Metric</option></select></label>
+<label>Layout<select name="layout"><option value="weather-station" {% if config.layout=="weather-station" %}selected{% endif %}>Weather Station</option><option value="premium-lcd" {% if config.layout=="premium-lcd" %}selected{% endif %}>Premium LCD</option></select></label>
+<label>Theme<select name="theme">{% for theme in ["light","dark","ocean","desert","high-contrast"] %}<option value="{{ theme }}" {% if config.theme==theme %}selected{% endif %}>{{ theme|title }}</option>{% endfor %}</select></label>
+<label>Refresh minutes<input type="number" min="5" name="refresh_minutes" value="{{ config.refresh_minutes }}"></label>
+<label class="check"><input type="checkbox" name="auto_refresh" {% if config.auto_refresh %}checked{% endif %}>Automatic preview refresh</label>
+<button class="primary">Save Configuration</button>
+</form>
+<form method="post" action="/backup"><button>Back Up Configuration</button></form>
+</section>
+<script>
+async function findLocation(){
+  const q=document.getElementById('locationQuery').value;
+  const box=document.getElementById('locationResults');
+  box.innerHTML='Searching...';
+  const data=await fetch('/api/location-search?q='+encodeURIComponent(q)).then(r=>r.json());
+  box.innerHTML='';
+  data.forEach(item=>{
+    const b=document.createElement('button');
+    b.type='button'; b.className='result';
+    b.textContent=`${item.name} (${item.latitude}, ${item.longitude})`;
+    b.onclick=()=>{
+      document.getElementById('locationName').value=item.name;
+      document.getElementById('latitude').value=item.latitude;
+      document.getElementById('longitude').value=item.longitude;
+      box.innerHTML='';
+    };
+    box.appendChild(b);
+  });
+  if(!data.length) box.textContent='No matches found.';
+}
+</script>
+{% endblock %}
