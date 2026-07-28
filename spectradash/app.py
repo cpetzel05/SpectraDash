@@ -14,7 +14,10 @@ from flask import Flask, jsonify, redirect, render_template, request, send_file,
 from werkzeug.utils import secure_filename
 
 from . import __version__
-from .config import COMMAND_PATH, DATA_DIR, LOG_PATH, PREVIEW_PATH, UPLOAD_DIR, load_config, load_status, save_config, save_status
+from .config import (
+    COMMAND_PATH, CONFIG_PATH, DATA_DIR, DEFAULT_CONFIG, LOG_PATH, PREVIEW_PATH, STATUS_PATH, UPLOAD_DIR,
+    default_config, load_config, load_status, location_is_configured, save_config, save_status,
+)
 from .display import driver_diagnostics
 from .display_profiles import DEFAULT_PROFILE_ID, PROFILES, get_profile, list_profiles
 from .render import THEMES, render_error
@@ -149,7 +152,13 @@ def create_app() -> Flask:
             updated = current.copy()
             error = None
             location = str(request.form.get("location", current.get("location_name", ""))).strip()
-            if location and location.casefold() != str(current.get("location_name", "")).casefold():
+            if not location:
+                error = "Enter a city, state, ZIP code, or place name to finish setup."
+            elif (
+                location.casefold() != str(current.get("location_name", "")).casefold()
+                or current.get("latitude") is None
+                or current.get("longitude") is None
+            ):
                 try:
                     updated.update(geocode(location))
                 except Exception as exc:
@@ -187,7 +196,10 @@ def create_app() -> Flask:
 
     @app.get("/")
     def dashboard():
-        return render_template("dashboard.html", config=load_config(), status=load_status(), system=system_info(), version=__version__)
+        config = load_config()
+        if not location_is_configured(config):
+            return redirect(url_for("setup_wizard"))
+        return render_template("dashboard.html", config=config, status=load_status(), system=system_info(), version=__version__)
 
     @app.route("/settings", methods=["GET", "POST"])
     def settings():
@@ -204,6 +216,59 @@ def create_app() -> Flask:
             save_config(updated)
             return redirect(url_for("settings", message="Settings saved."))
         return render_template("settings.html", config=current, status=load_status(), message=message, error=error, profiles=list_profiles(), version=__version__)
+
+    @app.get("/settings/export")
+    def export_settings():
+        payload = load_config()
+        body = json.dumps(payload, indent=2, sort_keys=True) + "\n"
+        return send_file(
+            io.BytesIO(body.encode("utf-8")),
+            mimetype="application/json",
+            as_attachment=True,
+            download_name=f"spectradash-settings-{datetime.now().strftime('%Y%m%d-%H%M%S')}.json",
+        )
+
+    @app.post("/settings/import")
+    def import_settings():
+        upload = request.files.get("settings_file")
+        if not upload or not upload.filename:
+            return redirect(url_for("settings", error="Choose a SpectraDash JSON settings file."))
+        if Path(upload.filename).suffix.lower() != ".json":
+            return redirect(url_for("settings", error="The imported settings file must use the .json extension."))
+        try:
+            payload = json.load(upload.stream)
+            if not isinstance(payload, dict):
+                raise ValueError("The settings file must contain a JSON object.")
+            unknown = sorted(set(payload) - set(DEFAULT_CONFIG))
+            if unknown:
+                raise ValueError("Unsupported setting keys: " + ", ".join(unknown[:8]))
+            merged = default_config()
+            merged.update(payload)
+            if merged.get("setup_complete") and not location_is_configured(merged):
+                raise ValueError("A completed setup must include a valid location, latitude, and longitude.")
+            save_config(merged)
+            _queue_daemon_command(action="restart-scheduler")
+            destination = "settings" if location_is_configured(merged) else "setup_wizard"
+            return redirect(url_for(destination, message="Settings imported."))
+        except (ValueError, json.JSONDecodeError, UnicodeDecodeError) as exc:
+            return redirect(url_for("settings", error=f"Import failed: {exc}"))
+
+    @app.post("/settings/reset-defaults")
+    def reset_defaults():
+        current = load_config()
+        reset = default_config()
+        for key in ("location_name", "latitude", "longitude", "timezone", "setup_complete"):
+            reset[key] = current.get(key)
+        save_config(reset)
+        _queue_daemon_command(action="restart-scheduler")
+        return redirect(url_for("settings", message="Display and feature settings were reset. Your location was preserved."))
+
+    @app.post("/settings/factory-reset")
+    def factory_reset():
+        save_config(default_config())
+        for path in (STATUS_PATH, PREVIEW_PATH, COMMAND_PATH):
+            path.unlink(missing_ok=True)
+        return redirect(url_for("setup_wizard", message="Factory reset complete. Enter a location to begin again."))
 
     @app.get("/designer")
     def designer():

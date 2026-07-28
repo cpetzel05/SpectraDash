@@ -1,6 +1,6 @@
 [project]
 name = "spectradash"
-version = "8.0.0rc18.post1"
+version = "8.0.0rc18.post2"
 description = "Responsive Raspberry Pi e-paper weather dashboard"
 requires-python = ">=3.11"
 dependencies = [

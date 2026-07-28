@@ -15,9 +15,9 @@ UPLOAD_DIR = DATA_DIR / "uploads"
 LOG_PATH = DATA_DIR / "spectradash.log"
 
 DEFAULT_CONFIG: dict[str, Any] = {
-    "location_name": "Phoenix, Arizona",
-    "latitude": 33.4484,
-    "longitude": -112.0740,
+    "location_name": "",
+    "latitude": None,
+    "longitude": None,
     "timezone": "auto",
     "units": "fahrenheit",
     "wind_units": "mph",
@@ -141,3 +141,18 @@ def save_status(**updates: Any) -> dict[str, Any]:
         return status
 
 COMMAND_PATH = DATA_DIR / "daemon-command.json"
+
+
+def default_config() -> dict[str, Any]:
+    """Return a fresh, independent copy of the shipped defaults."""
+    return json.loads(json.dumps(DEFAULT_CONFIG))
+
+
+def location_is_configured(config: dict[str, Any]) -> bool:
+    return bool(
+        config.get("setup_complete")
+        and str(config.get("location_name") or "").strip()
+        and config.get("latitude") is not None
+        and config.get("longitude") is not None
+    )
+

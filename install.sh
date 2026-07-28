@@ -13,7 +13,7 @@ DATA_DIR=/var/lib/spectradash
 DRIVER_DIR=/opt/waveshare-e-paper
 SOURCE_DIR=$(cd "$(dirname "$0")" && pwd)
 
-echo "Installing SpectraDash 8.0.0-rc18.1 for $INSTALL_USER..."
+echo "Installing SpectraDash 8.0.0-rc18.2 for $INSTALL_USER..."
 apt-get update
 apt-get install -y python3 python3-venv python3-pip python3-dev git libjpeg-dev zlib1g-dev libopenjp2-7 libtiff6 fonts-dejavu-core python3-spidev python3-gpiozero rsync
 
@@ -47,7 +47,7 @@ if command -v raspi-config >/dev/null 2>&1; then
 fi
 usermod -aG spi,gpio "$INSTALL_USER" || true
 chown -R "$INSTALL_USER:$INSTALL_GROUP" "$APP_DIR" "$DATA_DIR"
-chmod +x "$APP_DIR/install.sh" "$APP_DIR/scripts/watchdog.sh"
+chmod +x "$APP_DIR/install.sh" "$APP_DIR/uninstall.sh" "$APP_DIR/scripts/watchdog.sh"
 
 for unit in spectradash-web.service spectradash-daemon.service; do
   sed -e "s/__USER__/$INSTALL_USER/g" -e "s/__GROUP__/$INSTALL_GROUP/g" "$APP_DIR/systemd/$unit" > "/etc/systemd/system/$unit"
@@ -63,7 +63,7 @@ systemctl restart spectradash-daemon.service spectradash-web.service
 
 IP=$(hostname -I | awk '{print $1}')
 echo
-echo "SpectraDash 8.0.0-rc18.1 is installed."
+echo "SpectraDash 8.0.0-rc18.2 is installed."
 echo "Open: http://${IP:-raspberrypi.local}:8080"
 echo "Web status: sudo systemctl status spectradash-web"
 echo "Daemon status: sudo systemctl status spectradash-daemon"

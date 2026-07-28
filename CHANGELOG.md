@@ -1,3 +1,11 @@
+## 8.0.0-rc18.2
+
+- Removed the preset Phoenix location from clean installations.
+- Added first-run redirection and prevented weather refreshes until location setup is complete.
+- Added configuration export, validated JSON import, reset-to-defaults, and factory reset.
+- Added a safe uninstall script that preserves user data and the Waveshare driver unless explicitly requested.
+- Added first-run, configuration-management, and uninstall documentation.
+
 ## 8.0.0-rc17
 
 - Added visual Theme Gallery and community theme-pack foundation.
