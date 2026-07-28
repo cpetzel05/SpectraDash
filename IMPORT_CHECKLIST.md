@@ -1,16 +1,10 @@
-# Sprint 4 Import Checklist
+# Import Checklist
 
-- [ ] Extract the ZIP.
-- [ ] Copy all folders into the repository root.
-- [ ] Review conflicts with existing `.github` files.
-- [ ] Replace all placeholder URLs and usernames.
-- [ ] Enable GitHub Discussions.
-- [ ] Enable GitHub Issues.
-- [ ] Create the beta milestone.
-- [ ] Create the project board.
-- [ ] Add the recommended labels.
-- [ ] Verify issue forms in a logged-out browser.
-- [ ] Verify Discussion templates.
-- [ ] Run the repository validation workflow.
-- [ ] Publish `v1.0.0-beta.1` as a pre-release.
-- [ ] Complete the launch-day checklist.
+- [ ] Extract this package into the SpectraDash repository root.
+- [ ] Review existing files before overwriting.
+- [ ] Confirm the known-good RC1 commit or tag exists.
+- [ ] Run the rollback preview.
+- [ ] Restore RC1 only after confirming the target.
+- [ ] Push the documentation update.
+- [ ] Protect the RC1 tag from accidental movement.
+- [ ] Create a development branch for future incremental work.

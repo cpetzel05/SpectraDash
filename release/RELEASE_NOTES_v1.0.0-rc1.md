@@ -1,30 +1,24 @@
 # SpectraDash v1.0.0-rc1
 
-This is the first release candidate for SpectraDash v1.0.0.
+This release is the current stable development baseline for SpectraDash.
 
-## Primary hardware
+## Verified baseline behavior
 
-- Raspberry Pi Zero 2 W
-- Raspberry Pi 4
-- Waveshare 13.3-inch Spectra 6 / EL133UF1
-- Raspberry Pi OS
+- Raspberry Pi installation
+- systemd service startup
+- Local dashboard on port 8080
+- Open-Meteo current weather
+- Seven-day forecast
+- Setup and configuration saving
+- Diagnostics endpoint
+- Browser-based operation
 
-## Testing requested
+## Scope
 
-- Fresh installation on Raspberry Pi 4
-- Upgrade testing
-- Configuration retention
-- Browser preview
-- Physical refresh
-- Reboot recovery
-- Network outage recovery
-- Weather-provider recovery
-- 72-hour continuous operation
+RC1 is being used as the recovery and development baseline. New features will be introduced through small point updates rather than full application replacements.
 
-## Support
+## Known limitations
 
-Issues: https://github.com/cpetzel05/SpectraDash/issues  
-Discussions: https://github.com/cpetzel05/SpectraDash/discussions
-
-Maintainer: Christopher Petzel  
-Email: cpetzel05@gmail.com
+- Physical Waveshare panel integration is not yet treated as stable.
+- Advanced themes, alerts, astronomy, AQI, and plugin features will be reintroduced incrementally.
+- RC1 remains pre-release software.
