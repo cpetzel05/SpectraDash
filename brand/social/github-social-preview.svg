@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640">
+<defs><linearGradient id="b" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#0B1020"/><stop offset="1" stop-color="#243660"/></linearGradient></defs>
+<rect width="1280" height="640" fill="url(#b)"/>
+<g transform="translate(70,70) scale(.78)">
+<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#17213A"/><stop offset="1" stop-color="#0B1020"/></linearGradient></defs>
+<rect x="36" y="36" width="440" height="440" rx="96" fill="url(#g)" stroke="#68D8D6" stroke-width="12"/>
+<rect x="78" y="88" width="356" height="300" rx="36" fill="#111A31" stroke="#2F3B63" stroke-width="8"/>
+<circle cx="330" cy="178" r="58" fill="#F2C14E"/>
+<g fill="#F7F9FF"><circle cx="198" cy="238" r="58"/><circle cx="258" cy="214" r="78"/><circle cx="318" cy="246" r="50"/><rect x="144" y="238" width="230" height="72" rx="36"/></g>
+<g stroke="#68D8D6" stroke-width="10" stroke-linecap="round"><path d="M122 342h268"/><path d="M148 368h216"/></g>
+<rect x="212" y="414" width="88" height="16" rx="8" fill="#F2C14E"/>
+</g>
+<text x="500" y="255" font-family="Segoe UI,Arial,sans-serif" font-size="112" font-weight="850" fill="#F7F9FF">Spectra<tspan fill="#F2C14E">Dash</tspan></text>
+<text x="505" y="330" font-family="Segoe UI,Arial,sans-serif" font-size="40" font-weight="650" fill="#AEB8D2">Weather, Reimagined for E-Paper.</text>
+<rect x="505" y="395" width="210" height="58" rx="29" fill="#F2C14E"/><text x="610" y="433" text-anchor="middle" font-family="Arial" font-size="24" font-weight="800" fill="#0B1020">Raspberry Pi</text>
+<rect x="733" y="395" width="220" height="58" rx="29" fill="#223155" stroke="#41527F"/><text x="843" y="433" text-anchor="middle" font-family="Arial" font-size="24" font-weight="800" fill="#F7F9FF">Color E-Paper</text>
+</svg>

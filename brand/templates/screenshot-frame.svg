@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 980">
+<rect width="1600" height="980" rx="34" fill="#0B1020"/>
+<rect x="48" y="48" width="1504" height="884" rx="24" fill="#121A30" stroke="#344269" stroke-width="4"/>
+<rect x="48" y="48" width="1504" height="72" rx="24" fill="#1C2747"/>
+<circle cx="92" cy="84" r="10" fill="#FF7B7B"/><circle cx="124" cy="84" r="10" fill="#F2C14E"/><circle cx="156" cy="84" r="10" fill="#68D8D6"/>
+<rect x="82" y="154" width="1436" height="728" rx="18" fill="#0F1628" stroke="#2B385D" stroke-dasharray="14 12" stroke-width="3"/>
+<text x="800" y="505" text-anchor="middle" font-family="Arial" font-size="46" font-weight="800" fill="#F7F9FF">PLACE SCREENSHOT HERE</text>
+<text x="800" y="565" text-anchor="middle" font-family="Arial" font-size="28" fill="#AEB8D2">Recommended size: 1600 × 900 PNG or WebP</text>
+</svg>

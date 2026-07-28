@@ -1,0 +1,20 @@
+{
+  "name": "SpectraDash Brand & Media Kit",
+  "version": "1.0.0",
+  "project_version": "v1.0.0-beta.1",
+  "slogan": "Weather, Reimagined for E-Paper.",
+  "primary_logo": "brand/svg/spectradash-horizontal-dark.svg",
+  "logo_mark": "brand/svg/spectradash-mark.svg",
+  "social_preview": "brand/social/github-social-preview.svg",
+  "readme_hero": "brand/readme/readme-hero.svg",
+  "favicon": "brand/favicon/favicon.svg",
+  "palette": {
+    "midnight": "#0B1020",
+    "navy": "#17213A",
+    "gold": "#F2C14E",
+    "aqua": "#68D8D6",
+    "white": "#F7F9FF",
+    "slate": "#AEB8D2",
+    "coral": "#FF7B7B"
+  }
+}
