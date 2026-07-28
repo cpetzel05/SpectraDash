@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "spectradash"
+version = "1.0.0rc1"
+requires-python = ">=3.11"
+dependencies = ["Flask>=3,<4", "requests>=2.31,<3", "Pillow>=10,<12", "psutil>=5.9,<7"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8,<9"]
+
+[project.scripts]
+spectradash = "spectradash.app:main"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

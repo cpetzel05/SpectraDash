@@ -1,0 +1,17 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SpectraDash</title><link rel="stylesheet" href="/static/style.css"></head><body>
+<header><h1>SpectraDash</h1><nav><a href="/">Dashboard</a><a href="/setup">Setup</a><a href="/preview">Preview</a><a href="/api/diagnostics">Diagnostics</a></nav></header>
+<main>
+<section class="current"><div class="icon">{{ weather.current.icon }}</div><div><h2>{{ weather.location }}</h2><div class="temp">{{ "%.0f"|format(weather.current.temperature) }}°</div><p>{{ weather.current.condition }}</p></div></section>
+<section class="metrics">
+<div><b>Feels like</b><span>{{ "%.0f"|format(weather.current.feels_like) }}°</span></div>
+<div><b>Humidity</b><span>{{ weather.current.humidity }}%</span></div>
+<div><b>Dew point</b><span>{{ "%.0f"|format(weather.current.dew_point) }}°</span></div>
+<div><b>Wind</b><span>{{ weather.current.wind_speed }}</span></div>
+<div><b>Pressure</b><span>{{ weather.current.pressure }} hPa</span></div>
+<div><b>Sun</b><span>{{ weather.sunrise }} / {{ weather.sunset }}</span></div>
+</section>
+<h2>7-Day Forecast</h2>
+<section class="forecast">{% for day in weather.forecast %}<article><b>{{ day.date }}</b><span>{{ day.icon }}</span><span>{{ day.condition }}</span><span>{{ "%.0f"|format(day.high) }}° / {{ "%.0f"|format(day.low) }}°</span><span>Rain {{ day.rain }}%</span></article>{% endfor %}</section>
+<form method="post" action="/refresh"><button>Render Display Preview</button></form>
+<p>Source: {{ weather.source }}</p>
+</main></body></html>

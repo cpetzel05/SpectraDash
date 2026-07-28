@@ -1,0 +1,10 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Setup</title><link rel="stylesheet" href="/static/style.css"></head><body>
+<header><h1>SpectraDash Setup</h1><nav><a href="/">Dashboard</a></nav></header>
+<main><form method="post" class="form">
+<label>Provider<select name="provider"><option value="mock">Mock</option><option value="open-meteo" {% if config.provider=="open-meteo" %}selected{% endif %}>Open-Meteo</option></select></label>
+<label>Location name<input name="location_name" value="{{ config.location_name }}"></label>
+<label>Latitude<input type="number" step="any" name="latitude" value="{{ config.latitude }}"></label>
+<label>Longitude<input type="number" step="any" name="longitude" value="{{ config.longitude }}"></label>
+<label>Units<select name="units"><option value="imperial">Imperial</option><option value="metric" {% if config.units=="metric" %}selected{% endif %}>Metric</option></select></label>
+<label>Refresh minutes<input type="number" min="5" name="refresh_minutes" value="{{ config.refresh_minutes }}"></label>
+<button>Save</button></form></main></body></html>

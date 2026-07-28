@@ -1,0 +1,2 @@
+recursive-include spectradash/templates *
+recursive-include spectradash/static *

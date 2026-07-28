@@ -1,0 +1,11 @@
+{
+  "provider": "mock",
+  "latitude": 40.7128,
+  "longitude": -74.006,
+  "location_name": "New York",
+  "units": "imperial",
+  "refresh_minutes": 15,
+  "display_profile": "preview",
+  "bind_host": "0.0.0.0",
+  "bind_port": 8080
+}
