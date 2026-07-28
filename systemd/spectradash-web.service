@@ -1,0 +1,20 @@
+[Unit]
+Description=SpectraDash web interface
+After=network-online.target spectradash-daemon.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=__USER__
+Group=__GROUP__
+WorkingDirectory=/opt/spectradash
+Environment=SPECTRADASH_DATA_DIR=/var/lib/spectradash
+Environment=WAVESHARE_PYTHON=/opt/waveshare-e-paper/E-paper_Separate_Program/13.3inch_e-Paper_E/RaspberryPi/python
+ExecStart=/opt/spectradash/.venv/bin/gunicorn --workers 1 --threads 4 --timeout 600 --bind 0.0.0.0:8080 wsgi:app
+Restart=always
+RestartSec=4
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target

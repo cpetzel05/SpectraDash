@@ -1,0 +1,6 @@
+[Unit]
+Description=Check SpectraDash daemon heartbeat
+
+[Service]
+Type=oneshot
+ExecStart=/opt/spectradash/scripts/watchdog.sh

@@ -4,9 +4,16 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "spectradash"
-version = "1.0.0rc1"
+version = "1.0.0rc2"
+description = "Raspberry Pi weather dashboard for Spectra e-paper displays"
 requires-python = ">=3.11"
-dependencies = ["Flask>=3,<4", "requests>=2.31,<3", "Pillow>=10,<12", "psutil>=5.9,<7"]
+dependencies = [
+  "Flask>=3,<4",
+  "requests>=2.31,<3",
+  "Pillow>=10,<12",
+  "psutil>=5.9,<7",
+  "APScheduler>=3.10,<4"
+]
 
 [project.optional-dependencies]
 dev = ["pytest>=8,<9"]

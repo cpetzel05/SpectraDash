@@ -1,0 +1,21 @@
+[Unit]
+Description=SpectraDash display refresh daemon
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=__USER__
+Group=__GROUP__
+WorkingDirectory=/opt/spectradash
+Environment=SPECTRADASH_DATA_DIR=/var/lib/spectradash
+Environment=WAVESHARE_PYTHON=/opt/waveshare-e-paper/E-paper_Separate_Program/13.3inch_e-Paper_E/RaspberryPi/python
+ExecStart=/opt/spectradash/.venv/bin/python -m spectradash.daemon
+Restart=always
+RestartSec=5
+TimeoutStopSec=30
+PrivateTmp=true
+NoNewPrivileges=true
+
+[Install]
+WantedBy=multi-user.target
