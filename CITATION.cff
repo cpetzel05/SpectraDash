@@ -1,11 +1,11 @@
 cff-version: 1.2.0
-message: "If you use SpectraDash, please cite the project."
+message: "If you use SpectraDash in a project, please cite the software."
 title: "SpectraDash"
 type: software
 authors:
-  - family-names: "YOUR_LAST_NAME"
-    given-names: "YOUR_FIRST_NAME"
+  - family-names: "Petzel"
+    given-names: "Christopher"
 version: "1.0.0-beta.1"
 date-released: "2026-07-27"
-repository-code: "https://github.com/YOUR_USERNAME/SpectraDash"
+repository-code: "https://github.com/cpetzel05/SpectraDash"
 license: MIT

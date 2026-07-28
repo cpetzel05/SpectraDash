@@ -1,37 +1,38 @@
-# Public Launch Checklist
+# Sprint 1 Launch Checklist
 
-## Repository
+## Replace placeholders
 
-- [ ] Replace every `YOUR_USERNAME` placeholder
-- [ ] Upload SpectraDash source code
-- [ ] Upload this starter pack and merge directories
-- [ ] Confirm README renders correctly
-- [ ] Add repository description and website URL
-- [ ] Add topics: raspberry-pi, epaper, weather-dashboard, waveshare, python
+- [ ] Replace `YOUR_USERNAME`
+- [ ] Replace `YOUR_FIRST_NAME`
+- [ ] Replace `YOUR_LAST_NAME`
+- [ ] Add a private security contact method
+
+## Repository settings
+
+- [ ] Add description and website
+- [ ] Add topics
 - [ ] Enable Issues
 - [ ] Enable Discussions
-- [ ] Enable GitHub Pages using GitHub Actions
-- [ ] Enable branch protection for `main`
+- [ ] Enable private vulnerability reporting
+- [ ] Enable GitHub Pages
+- [ ] Protect `main`
+- [ ] Require pull-request checks
 
-## Security and privacy
+## Content
 
-- [ ] Remove API keys, Wi-Fi credentials, tokens, private IPs, and personal location data
-- [ ] Review configuration examples
-- [ ] Confirm logs and screenshots do not expose secrets
-- [ ] Add a private security contact method to SECURITY.md
+- [ ] Upload source code
+- [ ] Upload documentation
+- [ ] Add screenshots
+- [ ] Confirm README links
+- [ ] Review licensing of artwork and icons
+- [ ] Remove secrets and private data
 
 ## Release
 
-- [ ] Create tag `v1.0.0-beta.1`
-- [ ] Create a GitHub Release from the tag
-- [ ] Paste the supplied beta release notes
-- [ ] Upload the tested installer ZIP
-- [ ] Mark the release as a pre-release
-- [ ] Test download and installation from GitHub
-
-## Public testing
-
-- [ ] Pin a Public Testing discussion
-- [ ] Pin a Known Issues issue
-- [ ] Invite testers to file hardware compatibility reports
-- [ ] Track all beta blockers in a v1.0 milestone
+- [ ] Tag `v1.0.0-beta.1`
+- [ ] Create a pre-release
+- [ ] Paste release notes
+- [ ] Upload tested archive
+- [ ] Test install from GitHub
+- [ ] Pin public testing discussion
+- [ ] Create v1.0 milestone

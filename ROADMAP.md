@@ -4,28 +4,33 @@
 
 - Stable installer and updater
 - Weather Station and Premium LCD layouts
-- Universal weather alerts and astronomy
+- Universal alerts and astronomy information
 - Theme gallery and rotation
 - Developer diagnostics and support bundle
 - Public documentation and testing
+- Primary support for Waveshare 13.3-inch Spectra 6
 
 ## v1.1
 
-- Additional display profiles
+- More display profiles
 - Additional weather providers
-- More community themes and icon packs
-- Localization improvements
+- Expanded localization
+- More bundled themes and scenes
+- Improved theme import and validation
 
 ## v1.2
 
 - MQTT
 - Home Assistant integration
-- Custom dashboard widgets
+- Custom widgets
 - Multiple dashboard pages
 
 ## Future
 
 - Multi-display synchronization
-- Remote fleet management
-- Optional configuration backup
+- Remote device management
+- Optional encrypted configuration backup
 - Community theme and plugin catalog
+- Mobile companion experience
+
+Roadmap items are directional and may change based on testing, maintenance needs, and contributor availability.

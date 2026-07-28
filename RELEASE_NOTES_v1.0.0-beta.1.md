@@ -2,37 +2,24 @@
 
 The first public-testing release of SpectraDash is ready.
 
-SpectraDash is a modern, themeable weather dashboard designed for Raspberry Pi and Waveshare Spectra color e-paper displays.
-
 ## Highlights
 
 - Weather Station and Premium LCD layouts
-- Premium light, dark, and automatic appearance modes
+- Light, dark, and automatic appearance modes
 - Seven-day forecasts
-- Weather alerts in both primary layouts
-- Air quality, UV, wind, pressure, humidity, dew point, and precipitation
-- Realistic Moon phases and expanded astronomy information
-- Theme rotation and theme gallery
-- First-time setup wizard
-- Developer Mode diagnostics
-- Display watchdog and refresh synchronization
+- Weather alerts
+- Environmental data and astronomy
+- Realistic Moon rendering
+- Theme gallery and rotation
+- Setup wizard
+- Developer diagnostics
+- Display watchdog and synchronization
 - Theme and plugin foundations
 
-## Public-testing priorities
+## Testing priorities
 
-We especially need feedback about:
+We need feedback on installation, upgrades, long-running stability, refresh synchronization, unit switching, theme rotation, weather-provider reliability, and hardware compatibility.
 
-- Fresh installation
-- Upgrading from release candidates
-- Long-running stability
-- Display refresh synchronization
-- Theme switching and automatic rotation
-- Fahrenheit and Celsius
-- Hardware compatibility
-- Weather-provider reliability
+## Important
 
-## Reporting bugs
-
-Please use the repository's Bug Report template and attach a Developer Mode support bundle whenever possible.
-
-This is a beta release. Back up your configuration before installation or upgrade.
+This is a beta release. Back up configuration before installing or upgrading.
