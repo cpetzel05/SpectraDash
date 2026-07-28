@@ -3,7 +3,7 @@
 {% block content %}
 <section class="page-heading"><div><p class="eyebrow">Weather Studio</p><h1>Build your perfect display</h1><p>Every option is optimized for the six-color Spectra panel.</p></div></section>
 {% if message %}<div class="notice success">{{ message }}</div>{% endif %}
-{% if error %}<div class="notice error"><strong>Location was not changed.</strong> {{ error }} Other settings were saved.</div>{% endif %}
+{% if error %}<div class="notice error">{{ error }}</div>{% endif %}
 <form method="post" class="settings-grid">
   <section class="panel form-section"><p class="eyebrow">Weather</p><h2>Location and units</h2>
     <label>Location<input name="location" value="{{ config.location_name }}" autocomplete="postal-code"><small>City and state, ZIP code, or place name.</small></label>
@@ -58,6 +58,7 @@
     <label class="switch-row"><span><strong>Sunrise and sunset</strong><small>Daily solar times.</small></span><input type="checkbox" name="show_sun_times" {{ 'checked' if config.show_sun_times }}><i></i></label>
     <label class="switch-row"><span><strong>Weather alerts</strong><small>Shows a high-contrast banner for severe local conditions.</small></span><input type="checkbox" name="show_weather_alerts" {{ 'checked' if config.show_weather_alerts }}><i></i></label>
     <label class="switch-row"><span><strong>Astronomy details</strong><small>Moon age, next full moon, and next new moon.</small></span><input type="checkbox" name="show_astronomy_details" {{ 'checked' if config.show_astronomy_details }}><i></i></label>
+    <label class="switch-row"><span><strong>Raspberry Pi system status</strong><small>Optional footer with CPU temperature, memory, disk, Wi-Fi, and uptime where available.</small></span><input type="checkbox" name="show_system_status" {{ 'checked' if config.show_system_status }}><i></i></label>
     <label class="switch-row"><span><strong>Moon phase</strong><small>Phase name and illumination.</small></span><input type="checkbox" name="show_moon" {{ 'checked' if config.show_moon }}><i></i></label>
     <label class="switch-row"><span><strong>Hourly forecast data</strong><small>Keep the hourly weather module enabled.</small></span><input type="checkbox" name="show_hourly" {{ 'checked' if config.show_hourly }}><i></i></label>
     <label class="switch-row"><span><strong>Air quality</strong><small>Retrieve current US AQI and PM2.5.</small></span><input type="checkbox" name="show_air_quality" {{ 'checked' if config.show_air_quality }}><i></i></label>
@@ -76,4 +77,19 @@
   </section>
   <div class="form-actions"><a class="button secondary" href="{{ url_for('dashboard') }}">Cancel</a><button class="button primary" type="submit">Save studio settings</button></div>
 </form>
+
+<section class="panel form-section settings-management">
+  <p class="eyebrow">Configuration</p><h2>Backup, restore, and reset</h2>
+  <p>Export a portable JSON backup before testing major changes.</p>
+  <div class="gallery-actions"><a class="button secondary" href="{{ url_for('export_settings') }}">Export configuration</a></div>
+  <form method="post" action="{{ url_for('import_settings') }}" enctype="multipart/form-data" class="inline-upload">
+    <label>Import configuration<input type="file" name="settings_file" accept="application/json,.json" required></label>
+    <button class="button secondary" type="submit">Import JSON</button>
+  </form>
+  <div class="danger-zone">
+    <h3>Reset options</h3>
+    <form method="post" action="{{ url_for('reset_defaults') }}" onsubmit="return confirm('Reset display and feature settings while preserving your location?');"><button class="button secondary" type="submit">Reset settings to defaults</button></form>
+    <form method="post" action="{{ url_for('factory_reset') }}" onsubmit="return confirm('Factory reset SpectraDash? This clears the configured location and returns to first-run setup.');"><button class="button danger" type="submit">Factory reset SpectraDash</button></form>
+  </div>
+</section>
 {% endblock %}

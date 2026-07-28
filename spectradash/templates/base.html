@@ -1,20 +1,20 @@
 <!doctype html>
-<html lang="en" data-theme="{{ config.theme if config else 'desert' }}">
+<html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{% block title %}SpectraDash{% endblock %}</title>
-<link rel="stylesheet" href="/static/style.css">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#14213d">
+  <title>{% block title %}SpectraDash{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-<aside class="sidebar">
-<div class="brand">SpectraDash</div>
-<a href="/">Dashboard</a><a href="/setup">Setup</a><a href="/preview">Display Preview</a>
-<a href="/diagnostics">Diagnostics</a><a href="/api/weather">Weather API</a>
-</aside>
-<div class="page">
-<header class="topbar"><div><strong>{{ weather.location if weather else 'SpectraDash' }}</strong></div><div>v1.0.0-rc2</div></header>
-<main>
-{% with messages = get_flashed_messages() %}{% if messages %}<div class="flash">{{ messages[0] }}</div>{% endif %}{% endwith %}
-{% block content %}{% endblock %}
-</main></div>
-</body></html>
+<header class="topbar">
+  <a class="brand" href="{{ url_for('dashboard') }}"><span class="brand-mark">S6</span><span>SpectraDash</span></a>
+  <nav><a href="{{ url_for('dashboard') }}">Dashboard</a><a href="{{ url_for('settings') }}">Settings</a><a href="{{ url_for('theme_gallery') }}">Themes</a><a href="{{ url_for('designer') }}">Screen Designer</a><a href="{{ url_for('plugins_page') }}">Plugins</a><a href="{{ url_for('diagnostics') }}">Diagnostics</a>{% if config is defined and config.developer_mode %}<a href="{{ url_for('developer') }}">Developer</a>{% endif %}</nav>
+  <span class="version">v{{ version }}</span>
+</header>
+<main>{% block content %}{% endblock %}</main>
+{% block scripts %}{% endblock %}
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

@@ -6,7 +6,7 @@ import time
 from datetime import datetime, timedelta
 from typing import Any
 
-from .config import PREVIEW_PATH, load_config, load_status, save_status
+from .config import PREVIEW_PATH, load_config, load_status, location_is_configured, save_status
 from .display import make_hardware_test_pattern, send_to_display
 from .render import THEMES, render_error, render_weather, rotate_for_panel
 from .weather import fetch_weather
@@ -49,6 +49,11 @@ def refresh_display(reason: str = "schedule", *, force_physical: bool = False, t
     started_at = iso_now()
     try:
         config = load_config()
+        if not test_pattern and not location_is_configured(config):
+            message = "Waiting for first-run location setup."
+            save_status(state="setup_required", message=message, last_error=None, daemon_heartbeat=iso_now())
+            log.info("Refresh skipped: first-run setup is incomplete")
+            return {"ok": False, "message": message, "skipped": True, "setup_required": True}
         minutes = max(15, min(720, int(config.get("refresh_minutes", 45))))
         render_config, active_theme = theme_for_refresh(config)
         log.info("Refresh started reason=%s physical=%s test=%s", reason, bool(config.get("physical_display")) or force_physical, test_pattern)
