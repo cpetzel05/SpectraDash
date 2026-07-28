@@ -1,50 +1,9 @@
 {% extends "base.html" %}
+{% block title %}Dashboard · SpectraDash{% endblock %}
 {% block content %}
-{% for notice in weather.notices %}
-<div class="notice {{ notice.level }}"><strong>{{ notice.title }}</strong><span>{{ notice.text }}</span></div>
-{% endfor %}
-<section class="hero {{ config.layout }}">
-<div>
-<p class="condition">{{ weather.current.condition }}</p>
-<div class="temperature">{{ "%.0f"|format(weather.current.temperature) }}°</div>
-<p>Feels like {{ "%.0f"|format(weather.current.feels_like) }}°</p>
-</div>
-<div class="now-grid">
-<div><span>Humidity</span><strong>{{ weather.current.humidity }}%</strong></div>
-<div><span>Dew point</span><strong>{{ "%.0f"|format(weather.current.dew_point) }}°</strong></div>
-<div><span>Wind</span><strong>{{ "%.1f"|format(weather.current.wind_speed) }}</strong></div>
-<div><span>Gusts</span><strong>{{ "%.1f"|format(weather.current.wind_gust) }}</strong></div>
-</div>
-<div class="summary">
-<strong>AQI {{ weather.air.aqi }}</strong><span>{{ weather.air.category }}</span>
-<strong>UV {{ "%.1f"|format(weather.current.uv) }}</strong>
-<span>Sun {{ weather.sunrise }} / {{ weather.sunset }}</span>
-<span>{{ weather.moon.name }} · {{ weather.moon.illumination }}%</span>
-</div>
-</section>
-
-<section class="cards">
-<div><span>Pressure</span><strong>{{ "%.0f"|format(weather.current.pressure) }} hPa</strong></div>
-<div><span>Precipitation</span><strong>{{ weather.current.precipitation }}</strong></div>
-<div><span>PM2.5</span><strong>{{ weather.air.pm2_5 }}</strong></div>
-<div><span>PM10</span><strong>{{ weather.air.pm10 }}</strong></div>
-</section>
-
-<section class="panel">
-<h2>7-Day Forecast</h2>
-{% for day in weather.forecast %}
-<div class="forecast-row">
-<div><strong>{{ day.date }}</strong><span>{{ day.condition }}</span></div>
-<div>{{ "%.0f"|format(day.high) }}° / {{ "%.0f"|format(day.low) }}°</div>
-<div>Rain {{ day.rain }}%</div>
-<div>UV {{ "%.1f"|format(day.uv) }}</div>
-</div>
-{% endfor %}
-</section>
-
-<div class="actions">
-<form method="post" action="/render-preview"><button>Render Preview</button></form>
-<form method="post" action="/refresh-display"><button class="primary">Refresh Display</button></form>
-</div>
-<p class="muted">Profile: {{ config.display_profile }} · Updated {{ weather.updated[:16].replace("T"," ") }}</p>
+<section class="hero"><div><p class="eyebrow">SpectraDash Weather Studio 3</p><h1>Your six-color weather station</h1><p>Weather, air quality, astronomy, hourly trends, and a seven-day outlook—rendered specifically for your 13.3-inch Spectra 6 panel.</p></div><div class="hero-actions"><button id="refreshButton" class="button primary"><span class="refresh-icon">↻</span> Refresh preview</button><button id="physicalRefreshButton" class="button secondary"><span class="refresh-icon">↻</span> Send to panel now</button><button id="hardwareTestButton" class="button secondary">Run color test</button></div></section>
+<section class="status-grid"><article class="metric"><span>Display</span><strong id="stateText">{{ status.state|title }}</strong><small id="statusMessage">{{ status.message }}</small></article><article class="metric"><span>Last refresh</span><strong id="lastRefresh">{{ status.last_refresh or 'Not yet' }}</strong><small>Every {{ config.refresh_minutes }} minutes</small></article><article class="metric"><span>Panel output</span><strong>{{ 'Automatic' if config.physical_display else 'Manual' }}</strong><small>Last write: <span id="lastPhysicalRefresh">{{ status.last_physical_refresh or 'Not yet' }}</span></small></article><article class="metric"><span>Pi health</span><strong>{{ system.temperature_c if system.temperature_c is not none else '—' }}°C</strong><small>{{ system.cpu_percent }}% CPU · {{ system.memory_percent }}% RAM</small></article></section>
+<section class="layout-grid"><article class="panel preview-panel"><div class="panel-heading"><div><p class="eyebrow">Exact panel image</p><h2>Live preview</h2></div><span id="liveBadge" class="badge {{ status.state }}">{{ status.state }}</span></div><div class="epaper-frame"><img id="previewImage" src="{{ url_for('preview') }}?v={{ status.last_refresh or 0 }}" alt="Current e-paper preview"></div><p class="hint">The preview is the same PNG sent through the official Waveshare <code>getbuffer()</code> pipeline.</p></article>
+<aside class="side-stack"><article class="panel"><p class="eyebrow">Studio profile</p><h2>{{ config.theme|title }} · {{ config.layout_preset|replace('-', ' ')|title }}</h2><dl class="details"><div><dt>Location</dt><dd>{{ config.location_name }}</dd></div><div><dt>Rotation</dt><dd>{{ config.rotation }}°</dd></div><div><dt>Hourly graph</dt><dd>{{ 'On' if config.show_hourly_graph else 'Off' }}</dd></div><div><dt>Next refresh</dt><dd id="nextRefresh">{{ status.next_refresh or 'After next update' }}</dd></div></dl><a class="button secondary full" href="{{ url_for('settings') }}">Open Weather Studio</a></article><article class="panel accent-panel"><p class="eyebrow">New in version 3</p><h2>More useful at a glance</h2><p>12-hour temperature graph, AQI, UV, pressure trend, visibility, cloud cover, sunrise, sunset, and moon phase.</p><div class="palette"><i class="black"></i><i class="white"></i><i class="yellow"></i><i class="red"></i><i class="blue"></i><i class="green"></i></div></article></aside></section>
 {% endblock %}
+{% block scripts %}<script>window.SPECTRADASH_PAGE='dashboard';</script>{% endblock %}
