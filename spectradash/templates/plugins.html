@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% block title %}Plugins · SpectraDash{% endblock %}
+{% block content %}
+<section class="page-head">
+  <div><p class="eyebrow">Extensions</p><h1>Plugin Manager</h1><p>Install widget plugins, enable or disable them, then place them with Screen Designer.</p></div>
+</section>
+{% if message %}<div class="notice success">{{ message }}</div>{% endif %}
+{% if error %}<div class="notice error">{{ error }}</div>{% endif %}
+<section class="panel">
+  <h2>Install a plugin</h2>
+  <p class="muted">Only install plugins from sources you trust. A plugin contains Python code and runs with the SpectraDash service account.</p>
+  <form method="post" action="{{ url_for('plugins_install') }}" enctype="multipart/form-data" class="upload-form">
+    <input type="file" name="plugin" accept=".zip,application/zip" required>
+    <button class="primary" type="submit">Install plugin ZIP</button>
+  </form>
+</section>
+<section class="panel">
+  <div class="section-heading"><div><h2>Installed plugins</h2><p>{{ plugins|length }} plugin{% if plugins|length != 1 %}s{% endif %} found</p></div><a class="button" href="{{ url_for('designer') }}">Open Screen Designer</a></div>
+  <div class="plugin-grid">
+  {% for plugin in plugins %}
+    <article class="plugin-card">
+      <div class="plugin-title"><h3>{{ plugin.name }}</h3><span class="status-pill {{ 'ok' if plugin.enabled else 'off' }}">{{ 'Enabled' if plugin.enabled else 'Disabled' }}</span></div>
+      <p>{{ plugin.description or 'No description provided.' }}</p>
+      <dl><dt>Version</dt><dd>{{ plugin.version }}</dd><dt>Author</dt><dd>{{ plugin.author }}</dd><dt>Widget</dt><dd>{{ plugin.widget_name }}</dd></dl>
+      <div class="button-row">
+        <form method="post" action="{{ url_for('plugins_toggle', plugin_id=plugin.plugin_id) }}"><button type="submit">{{ 'Disable' if plugin.enabled else 'Enable' }}</button></form>
+        <form method="post" action="{{ url_for('plugins_remove', plugin_id=plugin.plugin_id) }}" onsubmit="return confirm('Remove this plugin?')"><button class="danger" type="submit">Remove</button></form>
+      </div>
+    </article>
+  {% else %}<p>No plugins are installed.</p>{% endfor %}
+  </div>
+</section>
+<section class="panel"><h2>Plugin format</h2><p>Each ZIP contains a <code>manifest.json</code> and a Python entry file. The entry file exposes <code>render(image, box, context)</code>. A starter example is included in the package under <code>plugin_sdk/example_plugin</code>.</p></section>
+{% endblock %}

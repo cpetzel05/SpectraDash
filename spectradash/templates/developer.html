@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Developer Mode · SpectraDash{% endblock %}
+{% block content %}
+<section class="page-heading"><div><p class="eyebrow">Advanced tools</p><h1>Developer Mode</h1><p>Test services, inspect performance, follow logs, and export a safe support bundle.</p></div><span class="status-pill {{ 'ok' if daemon.healthy else 'off' }}">Daemon {{ 'healthy' if daemon.healthy else 'unhealthy' }}</span></section>
+<section class="developer-grid">
+<article class="panel"><h2>Test bench</h2><div class="dev-actions"><button class="button secondary" data-action="weather">Test Weather API</button><button class="button secondary" data-action="preview">Render Preview</button><button class="button secondary" data-action="display">Test Physical Display</button><button class="button secondary" data-action="scheduler">Restart Scheduler</button></div><pre id="testResult" class="console small">Ready.</pre></article>
+<article class="panel"><h2>Performance snapshot</h2><dl class="details"><div><dt>Last refresh</dt><dd>{{ status.last_successful_refresh or 'Not yet' }}</dd></div><div><dt>Refresh duration</dt><dd>{{ status.refresh_duration_seconds or '—' }} seconds</dd></div><div><dt>CPU</dt><dd>{{ system.cpu_percent }}%</dd></div><div><dt>Memory</dt><dd>{{ system.memory_percent }}%</dd></div><div><dt>Temperature</dt><dd>{{ system.temperature_c or '—' }}°C</dd></div><div><dt>Heartbeat age</dt><dd>{{ daemon.heartbeat_age_seconds or '—' }} seconds</dd></div></dl><a class="button primary" href="{{ url_for('developer_support_bundle') }}">Export Support Bundle</a></article>
+<article class="panel wide"><div class="panel-heading"><div><p class="eyebrow">Live output</p><h2>Application log</h2></div><button id="clearLogs" class="button secondary">Clear</button></div><pre id="liveLogs" class="console">Loading logs…</pre><p class="hint">Updates every three seconds. This log is limited and automatically rotated.</p></article>
+</section>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='developer.js') }}"></script>{% endblock %}

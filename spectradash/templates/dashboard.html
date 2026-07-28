@@ -1,17 +1,38 @@
-<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>SpectraDash</title><link rel="stylesheet" href="/static/style.css"></head><body>
-<header><h1>SpectraDash</h1><nav><a href="/">Dashboard</a><a href="/setup">Setup</a><a href="/preview">Preview</a><a href="/api/diagnostics">Diagnostics</a></nav></header>
-<main>
-<section class="current"><div class="icon">{{ weather.current.icon }}</div><div><h2>{{ weather.location }}</h2><div class="temp">{{ "%.0f"|format(weather.current.temperature) }}°</div><p>{{ weather.current.condition }}</p></div></section>
-<section class="metrics">
-<div><b>Feels like</b><span>{{ "%.0f"|format(weather.current.feels_like) }}°</span></div>
-<div><b>Humidity</b><span>{{ weather.current.humidity }}%</span></div>
-<div><b>Dew point</b><span>{{ "%.0f"|format(weather.current.dew_point) }}°</span></div>
-<div><b>Wind</b><span>{{ weather.current.wind_speed }}</span></div>
-<div><b>Pressure</b><span>{{ weather.current.pressure }} hPa</span></div>
-<div><b>Sun</b><span>{{ weather.sunrise }} / {{ weather.sunset }}</span></div>
+{% extends "base.html" %}
+{% block content %}
+{% if weather.alerts %}
+<section class="alerts">{% for alert in weather.alerts %}<article class="{{ alert.severity }}"><strong>{{ alert.title }}</strong><span>{{ alert.body }}</span></article>{% endfor %}</section>
+{% endif %}
+<section class="hero layout-{{ config.layout }}">
+<div class="weather-icon"><img src="/static/icons/{{ weather.current.icon }}.svg" alt=""></div>
+<div><div class="eyebrow">{{ weather.current.condition }}</div><div class="temperature">{{ "%.0f"|format(weather.current.temperature) }}°</div><div>Feels like {{ "%.0f"|format(weather.current.feels_like) }}°</div></div>
+<div class="hero-side"><div>Updated {{ weather.updated[11:16] }}</div><div>{{ weather.timezone }}</div><div>Source: {{ weather.source }}</div></div>
 </section>
-<h2>7-Day Forecast</h2>
-<section class="forecast">{% for day in weather.forecast %}<article><b>{{ day.date }}</b><span>{{ day.icon }}</span><span>{{ day.condition }}</span><span>{{ "%.0f"|format(day.high) }}° / {{ "%.0f"|format(day.low) }}°</span><span>Rain {{ day.rain }}%</span></article>{% endfor %}</section>
-<form method="post" action="/refresh"><button>Render Display Preview</button></form>
-<p>Source: {{ weather.source }}</p>
-</main></body></html>
+
+<section class="metrics">
+<div><span>Humidity</span><strong>{{ weather.current.humidity }}%</strong></div>
+<div><span>Dew point</span><strong>{{ "%.0f"|format(weather.current.dew_point) }}°</strong></div>
+<div><span>Wind</span><strong>{{ "%.1f"|format(weather.current.wind_speed) }}</strong></div>
+<div><span>Gusts</span><strong>{{ "%.1f"|format(weather.current.wind_gust) }}</strong></div>
+<div><span>Pressure</span><strong>{{ "%.0f"|format(weather.current.pressure) }} hPa</strong></div>
+<div><span>UV index</span><strong>{{ "%.1f"|format(weather.current.uv_index) }}</strong></div>
+<div><span>US AQI</span><strong>{{ weather.air_quality.us_aqi }}</strong><small>{{ weather.air_quality.category }}</small></div>
+<div><span>Moon</span><strong>{{ weather.moon.name }}</strong><small>{{ weather.moon.illumination }}% illuminated</small></div>
+</section>
+
+<section class="panel">
+<div class="panel-title"><h2>7-Day Forecast</h2><span>Sunrise {{ weather.sunrise }} · Sunset {{ weather.sunset }}</span></div>
+<div class="forecast">
+{% for day in weather.forecast %}
+<article>
+<div><strong>{{ day.date }}</strong><span>{{ day.condition }}</span></div>
+<img src="/static/icons/{{ day.icon }}.svg" alt="">
+<div class="highlow">{{ "%.0f"|format(day.high) }}° <span>/ {{ "%.0f"|format(day.low) }}°</span></div>
+<div>Rain {{ day.rain }}%</div><div>UV {{ "%.1f"|format(day.uv_index|default(0)) }}</div>
+</article>
+{% endfor %}
+</div>
+</section>
+
+<form method="post" action="/refresh"><button class="primary">Render 13.3-inch Preview</button></form>
+{% endblock %}

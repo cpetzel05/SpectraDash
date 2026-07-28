@@ -1,0 +1,1 @@
+{"id":"hello-weather","name":"Hello Weather","version":"1.0.0","author":"Example","description":"Starter plugin for SpectraDash.","widget_name":"Hello Weather","entry":"plugin.py","default_size":[4,3]}

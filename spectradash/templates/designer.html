@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Screen Designer · SpectraDash{% endblock %}
+{% block content %}
+<section class="page-heading"><div><p class="eyebrow">Screen Designer</p><h1>Arrange your dashboard</h1><p>Drag widgets, resize them, hide modules, and save multiple-purpose layouts for the 1600 × 1200 panel.</p></div></section>
+<div class="designer-shell">
+  <aside class="panel designer-tools">
+    <h2>Widget library</h2>
+    <p class="muted">Tap Add, then drag the widget on the canvas. Use − and + to resize.</p>
+    <div id="widget-library"></div>
+    <hr>
+    <label>Starter layout<select id="preset"><option value="station">Weather station</option><option value="forecast">Forecast first</option><option value="minimal">Minimal</option><option value="information">Information wall</option></select></label>
+    <button class="button secondary" id="apply-preset" type="button">Apply starter</button>
+    <label class="switch-row"><span><strong>Enable designer layout</strong><small>Use this design on preview and physical refreshes.</small></span><input id="designer-enabled" type="checkbox" {{ 'checked' if config.designer_enabled }}><i></i></label>
+    <button class="button primary" id="save-layout" type="button">Save layout</button>
+    <p id="designer-status" aria-live="polite"></p>
+  </aside>
+  <section class="panel designer-stage-wrap">
+    <div class="designer-stage" id="designer-stage" aria-label="Dashboard layout canvas"></div>
+    <p class="muted">The canvas uses a 12 × 12 grid. Overlapping widgets are allowed for experimentation, but separated modules are easiest to read on e-paper.</p>
+  </section>
+</div>
+<script id="initial-layout" type="application/json">{{ config.designer_layout|tojson }}</script>
+<script id="plugin-widgets" type="application/json">{{ plugins|tojson }}</script>
+{% endblock %}
+{% block scripts %}<script src="{{ url_for('static', filename='designer.js') }}"></script>{% endblock %}

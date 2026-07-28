@@ -1,0 +1,20 @@
+<!doctype html>
+<html lang="en" data-theme="{{ config.theme if config else 'desert' }}">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>{% block title %}SpectraDash{% endblock %}</title>
+<link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+<aside class="sidebar">
+<div class="brand">SpectraDash</div>
+<a href="/">Dashboard</a><a href="/setup">Setup</a><a href="/preview">Display Preview</a>
+<a href="/diagnostics">Diagnostics</a><a href="/api/weather">Weather API</a>
+</aside>
+<div class="page">
+<header class="topbar"><div><strong>{{ weather.location if weather else 'SpectraDash' }}</strong></div><div>v1.0.0-rc2</div></header>
+<main>
+{% with messages = get_flashed_messages() %}{% if messages %}<div class="flash">{{ messages[0] }}</div>{% endif %}{% endwith %}
+{% block content %}{% endblock %}
+</main></div>
+</body></html>
