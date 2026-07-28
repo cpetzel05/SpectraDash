@@ -1,17 +1,25 @@
-# FAQ
+# Frequently Asked Questions
 
-## Who maintains SpectraDash?
+## Why is no location shown after installation?
 
-Christopher Petzel, GitHub @cpetzel05.
+RC18.2 and later intentionally ship without a preset location. Complete the Setup Wizard.
 
-## Where do I report problems?
+## Which display is verified?
 
-https://github.com/cpetzel05/SpectraDash/issues
+The Waveshare 13.3-inch Spectra 6 (E), 1600×1200 profile is verified on physical hardware.
 
-## Where do I ask setup questions?
+## Can I use another display?
 
-https://github.com/cpetzel05/SpectraDash/discussions
+Experimental profiles are included. Follow the hardware testing guide and submit a compatibility report.
 
-## Is RC1 stable?
+## Does SpectraDash need a desktop environment?
 
-RC1 is a pre-release and should be tested carefully before long-term use.
+No. It can run headlessly and is suitable for Raspberry Pi OS Lite.
+
+## Can configuration be backed up?
+
+Yes. Use configuration export in Settings and keep the downloaded JSON file.
+
+## Why does e-paper refresh slowly?
+
+Full-color e-paper refreshes are intentionally slow. SpectraDash uses scheduled updates rather than animation.

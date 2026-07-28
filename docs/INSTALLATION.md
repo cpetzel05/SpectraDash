@@ -1,16 +1,32 @@
 # Installation
 
+[README](../README.md) · [First Run](FIRST_RUN.md) · [Troubleshooting](TROUBLESHOOTING.md)
+
+## Recommended GitHub installation
+
 ```bash
+sudo apt update
+sudo apt install -y git
 git clone https://github.com/cpetzel05/SpectraDash.git
 cd SpectraDash
+chmod +x install.sh
+sudo ./install.sh
 ```
 
-Use the installer included with the SpectraDash application source.
+The installer places the application under `/opt/spectradash`, configuration under `/var/lib/spectradash`, installs systemd units, enables SPI, downloads the official Waveshare repository, and starts the web and refresh services.
 
-Before installing on a fresh Raspberry Pi 4:
+## Open the interface
 
-- Update Raspberry Pi OS.
-- Confirm the correct architecture.
-- Confirm the display model.
-- Use a stable power supply.
-- Keep a backup of configuration files.
+```text
+http://raspberrypi.local:8080
+```
+
+Use `hostname -I` if mDNS is unavailable.
+
+## Verify services
+
+```bash
+sudo systemctl status spectradash-web --no-pager
+sudo systemctl status spectradash-daemon --no-pager
+sudo systemctl status spectradash-watchdog.timer --no-pager
+```
