@@ -1,11 +1,15 @@
 {
-  "provider": "mock",
-  "latitude": 40.7128,
-  "longitude": -74.006,
-  "location_name": "New York",
+  "provider": "open-meteo",
+  "latitude": 33.683,
+  "longitude": -111.978,
+  "location_name": "Phoenix, AZ 85050",
+  "location_query": "85050",
   "units": "imperial",
   "refresh_minutes": 15,
   "display_profile": "preview",
+  "layout": "weather-station",
+  "theme": "desert",
+  "auto_refresh": true,
   "bind_host": "0.0.0.0",
   "bind_port": 8080
 }

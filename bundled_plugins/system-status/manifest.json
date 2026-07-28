@@ -1,0 +1,10 @@
+{
+  "id": "system-status",
+  "name": "System Status",
+  "version": "1.0.0",
+  "author": "SpectraDash",
+  "description": "Shows Raspberry Pi temperature, memory use, and uptime.",
+  "widget_name": "Pi System Status",
+  "entry": "plugin.py",
+  "default_size": [4, 3]
+}

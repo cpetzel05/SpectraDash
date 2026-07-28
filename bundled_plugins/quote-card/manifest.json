@@ -1,0 +1,10 @@
+{
+  "id": "quote-card",
+  "name": "Quote Card",
+  "version": "1.0.0",
+  "author": "SpectraDash",
+  "description": "A sample plugin that displays a rotating weather-friendly quote.",
+  "widget_name": "Quote Card",
+  "entry": "plugin.py",
+  "default_size": [4, 3]
+}

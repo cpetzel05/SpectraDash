@@ -1,0 +1,13 @@
+{
+  "id": "modern-glass",
+  "name": "Modern Glass",
+  "version": "1.0.0",
+  "layout": "weather-station",
+  "palette": [
+    "blue",
+    "white",
+    "yellow"
+  ],
+  "icon_style": "premium",
+  "scene_style": "lake"
+}

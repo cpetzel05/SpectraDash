@@ -1,0 +1,13 @@
+{
+  "id": "aviation",
+  "name": "Aviation",
+  "version": "1.0.0",
+  "layout": "weather-station",
+  "palette": [
+    "black",
+    "yellow",
+    "white"
+  ],
+  "icon_style": "premium",
+  "scene_style": "city"
+}

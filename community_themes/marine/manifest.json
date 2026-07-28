@@ -1,0 +1,13 @@
+{
+  "id": "marine",
+  "name": "Marine",
+  "version": "1.0.0",
+  "layout": "weather-station",
+  "palette": [
+    "blue",
+    "green",
+    "white"
+  ],
+  "icon_style": "premium",
+  "scene_style": "coastal"
+}
