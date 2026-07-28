@@ -1,11 +1,10 @@
 {% extends "base.html" %}
-{% block title %}Diagnostics — SpectraDash{% endblock %}
 {% block content %}
-<section class="panel"><h1>System Diagnostics</h1><div id="diag" class="diagnostic-grid">Loading...</div></section>
+<section class="panel"><h1>Diagnostics</h1><div id="diag" class="diag">Loading…</div></section>
 <script>
-fetch('/api/diagnostics').then(r=>r.json()).then(data=>{
+fetch('/api/diagnostics').then(r=>r.json()).then(d=>{
  const box=document.getElementById('diag'); box.innerHTML='';
- Object.entries(data).forEach(([k,v])=>{const d=document.createElement('div');d.innerHTML=`<span>${k.replaceAll('_',' ')}</span><strong>${v}</strong>`;box.appendChild(d);});
+ Object.entries(d).forEach(([k,v])=>{const x=document.createElement('div');x.innerHTML=`<span>${k.replaceAll('_',' ')}</span><strong>${v}</strong>`;box.appendChild(x);});
 });
 </script>
 {% endblock %}

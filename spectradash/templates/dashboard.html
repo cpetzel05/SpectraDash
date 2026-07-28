@@ -1,38 +1,50 @@
 {% extends "base.html" %}
 {% block content %}
-{% if weather.alerts %}
-<section class="alerts">{% for alert in weather.alerts %}<article class="{{ alert.severity }}"><strong>{{ alert.title }}</strong><span>{{ alert.body }}</span></article>{% endfor %}</section>
-{% endif %}
-<section class="hero layout-{{ config.layout }}">
-<div class="weather-icon"><img src="/static/icons/{{ weather.current.icon }}.svg" alt=""></div>
-<div><div class="eyebrow">{{ weather.current.condition }}</div><div class="temperature">{{ "%.0f"|format(weather.current.temperature) }}°</div><div>Feels like {{ "%.0f"|format(weather.current.feels_like) }}°</div></div>
-<div class="hero-side"><div>Updated {{ weather.updated[11:16] }}</div><div>{{ weather.timezone }}</div><div>Source: {{ weather.source }}</div></div>
-</section>
-
-<section class="metrics">
+{% for notice in weather.notices %}
+<div class="notice {{ notice.level }}"><strong>{{ notice.title }}</strong><span>{{ notice.text }}</span></div>
+{% endfor %}
+<section class="hero {{ config.layout }}">
+<div>
+<p class="condition">{{ weather.current.condition }}</p>
+<div class="temperature">{{ "%.0f"|format(weather.current.temperature) }}°</div>
+<p>Feels like {{ "%.0f"|format(weather.current.feels_like) }}°</p>
+</div>
+<div class="now-grid">
 <div><span>Humidity</span><strong>{{ weather.current.humidity }}%</strong></div>
 <div><span>Dew point</span><strong>{{ "%.0f"|format(weather.current.dew_point) }}°</strong></div>
 <div><span>Wind</span><strong>{{ "%.1f"|format(weather.current.wind_speed) }}</strong></div>
 <div><span>Gusts</span><strong>{{ "%.1f"|format(weather.current.wind_gust) }}</strong></div>
-<div><span>Pressure</span><strong>{{ "%.0f"|format(weather.current.pressure) }} hPa</strong></div>
-<div><span>UV index</span><strong>{{ "%.1f"|format(weather.current.uv_index) }}</strong></div>
-<div><span>US AQI</span><strong>{{ weather.air_quality.us_aqi }}</strong><small>{{ weather.air_quality.category }}</small></div>
-<div><span>Moon</span><strong>{{ weather.moon.name }}</strong><small>{{ weather.moon.illumination }}% illuminated</small></div>
-</section>
-
-<section class="panel">
-<div class="panel-title"><h2>7-Day Forecast</h2><span>Sunrise {{ weather.sunrise }} · Sunset {{ weather.sunset }}</span></div>
-<div class="forecast">
-{% for day in weather.forecast %}
-<article>
-<div><strong>{{ day.date }}</strong><span>{{ day.condition }}</span></div>
-<img src="/static/icons/{{ day.icon }}.svg" alt="">
-<div class="highlow">{{ "%.0f"|format(day.high) }}° <span>/ {{ "%.0f"|format(day.low) }}°</span></div>
-<div>Rain {{ day.rain }}%</div><div>UV {{ "%.1f"|format(day.uv_index|default(0)) }}</div>
-</article>
-{% endfor %}
+</div>
+<div class="summary">
+<strong>AQI {{ weather.air.aqi }}</strong><span>{{ weather.air.category }}</span>
+<strong>UV {{ "%.1f"|format(weather.current.uv) }}</strong>
+<span>Sun {{ weather.sunrise }} / {{ weather.sunset }}</span>
+<span>{{ weather.moon.name }} · {{ weather.moon.illumination }}%</span>
 </div>
 </section>
 
-<form method="post" action="/refresh"><button class="primary">Render 13.3-inch Preview</button></form>
+<section class="cards">
+<div><span>Pressure</span><strong>{{ "%.0f"|format(weather.current.pressure) }} hPa</strong></div>
+<div><span>Precipitation</span><strong>{{ weather.current.precipitation }}</strong></div>
+<div><span>PM2.5</span><strong>{{ weather.air.pm2_5 }}</strong></div>
+<div><span>PM10</span><strong>{{ weather.air.pm10 }}</strong></div>
+</section>
+
+<section class="panel">
+<h2>7-Day Forecast</h2>
+{% for day in weather.forecast %}
+<div class="forecast-row">
+<div><strong>{{ day.date }}</strong><span>{{ day.condition }}</span></div>
+<div>{{ "%.0f"|format(day.high) }}° / {{ "%.0f"|format(day.low) }}°</div>
+<div>Rain {{ day.rain }}%</div>
+<div>UV {{ "%.1f"|format(day.uv) }}</div>
+</div>
+{% endfor %}
+</section>
+
+<div class="actions">
+<form method="post" action="/render-preview"><button>Render Preview</button></form>
+<form method="post" action="/refresh-display"><button class="primary">Refresh Display</button></form>
+</div>
+<p class="muted">Profile: {{ config.display_profile }} · Updated {{ weather.updated[:16].replace("T"," ") }}</p>
 {% endblock %}

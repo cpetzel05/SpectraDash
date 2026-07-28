@@ -1,14 +1,14 @@
 {
   "provider": "open-meteo",
+  "location_query": "85050",
+  "location_name": "Phoenix, Arizona",
   "latitude": 33.683,
   "longitude": -111.978,
-  "location_name": "Phoenix, AZ 85050",
-  "location_query": "85050",
   "units": "imperial",
-  "refresh_minutes": 15,
-  "display_profile": "preview",
   "layout": "weather-station",
   "theme": "desert",
+  "display_profile": "preview",
+  "refresh_minutes": 30,
   "auto_refresh": true,
   "bind_host": "0.0.0.0",
   "bind_port": 8080

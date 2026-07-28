@@ -1,6 +1,6 @@
 [Unit]
-Description=SpectraDash web dashboard
-After=network-online.target
+Description=SpectraDash display refresh worker
+After=network-online.target spectradash.service
 Wants=network-online.target
 
 [Service]
@@ -9,9 +9,9 @@ User=spectradash
 Group=spectradash
 WorkingDirectory=/opt/spectradash
 Environment=SPECTRADASH_CONFIG=/etc/spectradash/config.json
-ExecStart=/opt/spectradash/venv/bin/spectradash
+ExecStart=/opt/spectradash/venv/bin/spectradash-worker
 Restart=on-failure
-RestartSec=5
+RestartSec=10
 NoNewPrivileges=true
 PrivateTmp=true
 ProtectSystem=strict

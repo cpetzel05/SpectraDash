@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
-systemctl --no-pager status spectradash || true
+systemctl --no-pager status spectradash spectradash-worker || true
 echo
-journalctl -u spectradash -n 80 --no-pager || true
+journalctl -u spectradash -u spectradash-worker -n 100 --no-pager || true
