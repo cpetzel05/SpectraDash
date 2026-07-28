@@ -1,34 +1,16 @@
 # Installation
 
-## Requirements
-
-- Raspberry Pi with Raspberry Pi OS
-- Supported Waveshare Spectra e-paper display
-- Internet access
-- A compatible weather-provider API key, when required
-
-## Install from GitHub
-
 ```bash
-git clone https://github.com/YOUR_USERNAME/SpectraDash.git
+git clone https://github.com/cpetzel05/SpectraDash.git
 cd SpectraDash
-sudo bash install.sh
 ```
 
-## Updating
+Use the installer included with the SpectraDash application source.
 
-```bash
-cd ~/SpectraDash
-git pull
-sudo bash install.sh
-```
+Before installing on a fresh Raspberry Pi 4:
 
-Back up your configuration before updating between major versions.
-
-## First launch
-
-Open the SpectraDash web interface from another device on the same network and complete the setup wizard.
-
-## Troubleshooting
-
-Use Developer Mode to test the weather API, render previews, inspect system health, view logs, and export a support bundle.
+- Update Raspberry Pi OS.
+- Confirm the correct architecture.
+- Confirm the display model.
+- Use a stable power supply.
+- Keep a backup of configuration files.

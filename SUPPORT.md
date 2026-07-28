@@ -1,31 +1,17 @@
 # Support
 
-## Where to ask for help
+Use GitHub Discussions for setup questions:
 
-Use GitHub Discussions for setup questions, configuration help, theme questions, and general troubleshooting.
+https://github.com/cpetzel05/SpectraDash/discussions
 
-Use GitHub Issues for reproducible software defects.
+Use GitHub Issues for reproducible bugs:
 
-## Include this information
+https://github.com/cpetzel05/SpectraDash/issues
 
-- SpectraDash version
-- Raspberry Pi model
-- Display model
-- Raspberry Pi OS version
-- Active layout and theme
-- Installation method
-- Relevant logs
-- Steps already attempted
+Before posting:
 
-## Before posting
-
-- Search existing discussions and issues.
-- Reboot the Raspberry Pi.
-- Confirm networking and system time.
-- Perform a hard refresh in the browser.
-- Test the weather API in Developer Mode.
-- Export a support bundle and remove secrets.
-
-## Response expectations
-
-SpectraDash is a community project. Support is best effort and response times may vary.
+- Include the SpectraDash version.
+- Include the Raspberry Pi and display model.
+- Include the operating system and architecture.
+- Include sanitized logs.
+- Remove API keys, passwords, tokens, IP addresses, and private location details.

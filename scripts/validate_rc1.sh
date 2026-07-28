@@ -1,9 +1,17 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-echo "Validating SpectraDash RC1 release package..."
+if [[ ! -f README.md || ! -d release || ! -d testing ]]; then
+  echo "Run this command from the SpectraDash repository root."
+  exit 2
+fi
 
 required=(
+  "README.md"
+  "LICENSE.txt"
+  "CONTRIBUTING.md"
+  "SECURITY.md"
+  "CHANGELOG.md"
   "release/RELEASE_NOTES_v1.0.0-rc1.md"
   "release/RC1_PUBLISH_CHECKLIST.md"
   "release/KNOWN_ISSUES_RC1.md"
@@ -18,17 +26,27 @@ for file in "${required[@]}"; do
   [[ -f "$file" ]] || { echo "Missing: $file"; exit 1; }
 done
 
-if grep -RInE   --exclude-dir=.git   --exclude='validate_rc1.sh'   'YOUR_USERNAME|YOUR_REPOSITORY_URL|YOUR_DOCS_URL|YOUR_RELEASE_URL' .; then
+placeholder_regex='YOUR_(USERNAME|REPOSITORY_URL|DOCS_URL|RELEASE_URL|DISCUSSIONS_URL)'
+
+if grep -RInE \
+  --exclude-dir=.git \
+  --exclude-dir=.archive \
+  --exclude='validate_rc1.sh' \
+  --exclude='repository_audit.sh' \
+  "$placeholder_regex" \
+  .github release testing operations security docs README.md CONTRIBUTING.md SECURITY.md; then
   echo "Unresolved placeholder found."
   exit 1
 fi
 
-find . -name '*.json' -not -path './.git/*' -print0 | while IFS= read -r -d '' file; do
+find . -name '*.json' -not -path './.git/*' -print0 |
+while IFS= read -r -d '' file; do
   python3 -m json.tool "$file" >/dev/null
 done
 
-find scripts -name '*.sh' -print0 | while IFS= read -r -d '' file; do
+find scripts -name '*.sh' -print0 |
+while IFS= read -r -d '' file; do
   bash -n "$file"
 done
 
-echo "RC1 package validation passed."
+echo "RC1 validation passed."

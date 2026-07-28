@@ -1,0 +1,16 @@
+{
+  "name": "SpectraDash",
+  "maintainer": {
+    "first_name": "Christopher",
+    "last_name": "Petzel",
+    "full_name": "Christopher Petzel",
+    "github_username": "cpetzel05",
+    "email": "cpetzel05@gmail.com"
+  },
+  "repository": "https://github.com/cpetzel05/SpectraDash",
+  "documentation": "https://cpetzel05.github.io/SpectraDash/",
+  "issues": "https://github.com/cpetzel05/SpectraDash/issues",
+  "discussions": "https://github.com/cpetzel05/SpectraDash/discussions",
+  "releases": "https://github.com/cpetzel05/SpectraDash/releases",
+  "target_release": "v1.0.0-rc1"
+}

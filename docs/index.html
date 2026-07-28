@@ -3,49 +3,29 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
-  <title>SpectraDash</title>
-  <meta name="description" content="A themeable Raspberry Pi weather dashboard for Waveshare Spectra e-paper displays.">
-  <style>
-    :root { color-scheme: dark; --bg:#0b1020; --panel:#151c33; --text:#edf2ff; --muted:#a9b4d0; --accent:#f4c95d; }
-    * { box-sizing:border-box; }
-    body { margin:0; font-family:system-ui,-apple-system,Segoe UI,sans-serif; background:linear-gradient(180deg,#080d19,#111936); color:var(--text); }
-    main { max-width:1100px; margin:auto; padding:64px 24px; }
-    .hero { text-align:center; padding:48px 0 64px; }
-    h1 { font-size:clamp(3rem,9vw,6rem); margin:0; letter-spacing:-.05em; }
-    .tagline { color:var(--muted); font-size:1.25rem; max-width:760px; margin:20px auto 32px; }
-    .buttons a { display:inline-block; padding:13px 20px; margin:6px; border-radius:10px; text-decoration:none; font-weight:700; }
-    .primary { background:var(--accent); color:#111; }
-    .secondary { border:1px solid #58627d; color:var(--text); }
-    .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:18px; }
-    .card { background:rgba(21,28,51,.92); padding:24px; border-radius:16px; border:1px solid #2a3558; }
-    .card h2 { margin-top:0; }
-    code { background:#080d19; padding:3px 7px; border-radius:6px; }
-    footer { color:var(--muted); text-align:center; padding:64px 0 20px; }
-  </style>
+  <title>SpectraDash Documentation</title>
+  <link rel="stylesheet" href="assets/site.css">
 </head>
 <body>
+<header>
+  <h1>SpectraDash</h1>
+  <p>Raspberry Pi weather dashboard for Waveshare Spectra e-paper displays.</p>
+</header>
+<nav>
+  <a href="installation.html">Installation</a>
+  <a href="configuration.html">Configuration</a>
+  <a href="hardware.html">Hardware</a>
+  <a href="troubleshooting.html">Troubleshooting</a>
+  <a href="testing.html">Testing</a>
+</nav>
 <main>
-  <section class="hero">
-    <h1>SpectraDash</h1>
-    <p class="tagline">A polished, themeable weather dashboard for Raspberry Pi and Waveshare Spectra e-paper displays.</p>
-    <div class="buttons">
-      <a class="primary" href="../releases">Download</a>
-      <a class="secondary" href="../issues">Public testing</a>
-    </div>
-  </section>
-  <section class="grid">
-    <article class="card"><h2>Premium themes</h2><p>Weather Station and Premium LCD layouts with light, dark, and automatic appearance modes.</p></article>
-    <article class="card"><h2>Rich weather data</h2><p>Seven-day forecasts, alerts, air quality, UV, wind, pressure, astronomy, and trends.</p></article>
-    <article class="card"><h2>Built for e-paper</h2><p>Refresh management, watchdogs, display profiles, dithering, and hardware diagnostics.</p></article>
-    <article class="card"><h2>Open and extensible</h2><p>Theme packs, plugin SDK, developer tools, and community hardware profiles.</p></article>
-  </section>
-  <section class="card" style="margin-top:20px">
-    <h2>Quick start</h2>
-    <p><code>git clone https://github.com/YOUR_USERNAME/SpectraDash.git</code></p>
-    <p><code>cd SpectraDash && sudo bash install.sh</code></p>
-    <p>Replace <code>YOUR_USERNAME</code> with the GitHub account that owns the repository.</p>
-  </section>
-  <footer>SpectraDash — open-source weather for color e-paper.</footer>
+  <h2>Project links</h2>
+  <p><a href="https://github.com/cpetzel05/SpectraDash">GitHub repository</a></p>
+  <p><a href="https://github.com/cpetzel05/SpectraDash/releases">Releases</a></p>
+  <p><a href="https://github.com/cpetzel05/SpectraDash/issues">Issues</a></p>
+  <p><a href="https://github.com/cpetzel05/SpectraDash/discussions">Discussions</a></p>
+  <h2>Maintainer</h2>
+  <p>Christopher Petzel — <a href="mailto:cpetzel05@gmail.com">cpetzel05@gmail.com</a></p>
 </main>
 </body>
 </html>
