@@ -1,0 +1,17 @@
+{
+  "project": "SpectraDash",
+  "github_username": "cpetzel05",
+  "repository": "https://github.com/cpetzel05/SpectraDash",
+  "sprint": 5,
+  "focus": "Beta stabilization and v1.0 readiness",
+  "target_releases": [
+    "v1.0.0-beta.2",
+    "v1.0.0-rc1",
+    "v1.0.0"
+  ],
+  "primary_hardware": {
+    "computer": "Raspberry Pi Zero 2 W",
+    "display": "Waveshare 13.3-inch Spectra 6 / EL133UF1",
+    "operating_system": "Raspberry Pi OS"
+  }
+}
