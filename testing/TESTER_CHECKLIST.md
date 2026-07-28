@@ -1,0 +1,25 @@
+# Tester Checklist
+
+- [ ] Record SpectraDash version.
+- [ ] Record Raspberry Pi model.
+- [ ] Record display model and revision.
+- [ ] Record Raspberry Pi OS release and architecture.
+- [ ] Complete a fresh installation.
+- [ ] Complete the Setup Wizard.
+- [ ] Test Weather Station.
+- [ ] Test Premium LCD Dark.
+- [ ] Test Premium LCD Light.
+- [ ] Switch to Fahrenheit.
+- [ ] Switch to Celsius.
+- [ ] Test Theme Gallery.
+- [ ] Enable automatic theme rotation.
+- [ ] Test weather alerts when available.
+- [ ] Verify astronomy and Moon rendering.
+- [ ] Render a browser preview.
+- [ ] Refresh the physical display.
+- [ ] Reboot the Raspberry Pi.
+- [ ] Confirm automatic recovery.
+- [ ] Disconnect the network temporarily.
+- [ ] Confirm recovery after reconnecting.
+- [ ] Run for at least 24 hours.
+- [ ] Submit a hardware compatibility report.

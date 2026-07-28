@@ -1,0 +1,18 @@
+{
+  "project": "SpectraDash",
+  "release": "v1.0.0-beta.1",
+  "release_type": "pre-release",
+  "primary_hardware": {
+    "computer": "Raspberry Pi Zero 2 W",
+    "display": "Waveshare 13.3-inch Spectra 6 / EL133UF1",
+    "operating_system": "Raspberry Pi OS"
+  },
+  "placeholders": [
+    "cpetzel05",
+    "https://github.com/cpetzel05/SpectraDash",
+    "https://cpetzel05.github.io/SpectraDash/",
+    "https://github.com/cpetzel05/SpectraDash/releases/tag/v1.0.0-beta.1",
+    "https://github.com/cpetzel05/SpectraDash/discussions"
+  ],
+  "recommended_next_milestone": "v1.0.0-beta.2"
+}
