@@ -2,9 +2,9 @@
 
 ## Replace placeholders
 
-- [ ] Replace `YOUR_USERNAME`
-- [ ] Replace `YOUR_FIRST_NAME`
-- [ ] Replace `YOUR_LAST_NAME`
+- [ ] Replace `cpetzel05`
+- [ ] Replace `Christopher`
+- [ ] Replace `Petzel`
 - [ ] Add a private security contact method
 
 ## Repository settings

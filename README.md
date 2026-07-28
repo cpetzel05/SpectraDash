@@ -85,7 +85,7 @@ See [Supported Hardware](docs/hardware/supported-hardware.md) for details.
 ### Install from GitHub
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/SpectraDash.git
+git clone https://github.com/cpetzel05/SpectraDash.git
 cd SpectraDash
 sudo bash install.sh
 ```
