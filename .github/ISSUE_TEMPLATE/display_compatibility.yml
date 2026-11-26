@@ -1,0 +1,30 @@
+name: Display compatibility report
+description: Submit evidence for an e-paper display profile
+title: "[Display Test]: "
+labels: ["hardware", "display-testing"]
+body:
+  - type: input
+    id: display
+    attributes: {label: Exact display model and resolution}
+    validations: {required: true}
+  - type: input
+    id: pi
+    attributes: {label: Raspberry Pi model}
+    validations: {required: true}
+  - type: input
+    id: os
+    attributes: {label: Raspberry Pi OS version and architecture}
+    validations: {required: true}
+  - type: dropdown
+    id: install
+    attributes:
+      label: Installation result
+      options: [Successful, Successful with workaround, Failed]
+    validations: {required: true}
+  - type: textarea
+    id: evidence
+    attributes: {label: Preview, test-pattern, refresh time, artifacts, and photographs}
+    validations: {required: true}
+  - type: textarea
+    id: logs
+    attributes: {label: Sanitized logs, render: shell}

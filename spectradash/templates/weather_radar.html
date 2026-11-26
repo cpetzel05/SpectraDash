@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% block title %}Weather Radar · SpectraDash{% endblock %}
+{% block content %}
+<section class="panel" style="max-width:1100px;margin:auto;padding:24px">
+<h1>Optional Weather Radar</h1>
+<p>Radar centered on <strong>{{ config.location_name }}</strong>. This browser-only feature does not refresh the e-paper screen or run in the background on your Pi.</p>
+{% if not enabled %}
+<p>Radar is disabled. Enable <strong>Optional browser weather radar</strong> in <a href="{{ url_for('settings') }}">Settings</a> and save to use it.</p>
+{% else %}
+<p>Radar and base-map data come from third-party services. Pressing Load shares the displayed map area with those providers. Radar imagery may be delayed and is not an emergency warning service.</p>
+<button type="button" id="load-radar" style="padding:12px 22px;cursor:pointer">Load radar map</button>
+<p id="radar-status" role="status" aria-live="polite">Radar has not been loaded.</p>
+<div id="radar-map" style="height: min(65vh,620px);min-height:350px;border-radius:12px;overflow:hidden;border:1px solid #9aa6b2" aria-label="Weather radar map"></div>
+<p><small>Radar: <a href="https://www.rainviewer.com/" target="_blank" rel="noopener noreferrer">RainViewer</a>. Map: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap contributors</a>. If radar is unavailable, see <a href="https://radar.weather.gov/" target="_blank" rel="noopener noreferrer">NOAA radar</a>.</small></p>
+{% endif %}
+</section>
+{% endblock %}
+{% block scripts %}
+{% if enabled %}
+<script>
+(() => {
+  const button = document.getElementById('load-radar');
+  const status = document.getElementById('radar-status');
+  const lat = {{ latitude | tojson }}, lon = {{ longitude | tojson }};
+  const setStatus = (message) => { status.textContent = message; };
+  const addResource = (tag, attrs) => new Promise((resolve, reject) => {
+    const el = document.createElement(tag);
+    Object.entries(attrs).forEach(([key, value]) => el.setAttribute(key, value));
+    el.onload = resolve; el.onerror = () => reject(new Error('Map library unavailable'));
+    document.head.appendChild(el);
+  });
+  button.addEventListener('click', async () => {
+    button.disabled = true;
+    setStatus('Loading map and radar data…');
+    try {
+      await addResource('link', {rel:'stylesheet',href:'https://unpkg.com/leaflet@1.9.4/dist/leaflet.css'});
+      await addResource('script', {src:'https://unpkg.com/leaflet@1.9.4/dist/leaflet.js'});
+      const map = L.map('radar-map', {scrollWheelZoom:false}).setView([lat, lon], 8);
+      L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution:'© OpenStreetMap contributors', maxZoom: 18
+      }).addTo(map);
+      L.circleMarker([lat,lon], {radius:5, color:'#ffffff', fillColor:'#204eaa', fillOpacity:1, weight:2}).addTo(map).bindPopup('Configured weather location');
+      const response = await fetch('https://api.rainviewer.com/public/weather-maps.json', {cache:'no-store'});
+      if (!response.ok) throw new Error('Radar provider returned HTTP ' + response.status);
+      const data = await response.json();
+      const frames = data && data.radar && Array.isArray(data.radar.past) ? data.radar.past : [];
+      const frame = frames[frames.length-1];
+      if (!frame || !/^\/v2\/radar\//.test(frame.path) || !/^https:\/\//.test(data.host || '')) throw new Error('No compatible radar frame available');
+      const host = new URL(data.host);
+      if (host.protocol !== 'https:' || !host.hostname.endsWith('.rainviewer.com')) throw new Error('Unexpected radar tile host');
+      const radarUrl = host.origin + frame.path + '/256/{z}/{x}/{y}/2/1_1.png';
+      L.tileLayer(radarUrl, {opacity:0.65, maxNativeZoom:7, maxZoom:18, attribution:'Radar © RainViewer'}).addTo(map);
+      setStatus('Latest available radar frame: ' + new Date(frame.time * 1000).toLocaleString() + '. Reload this page to request a newer frame.');
+    } catch (error) {
+      setStatus('Radar could not load: ' + error.message + '. You can still use NOAA radar from the link below.');
+      button.disabled = false;
+    }
+  });
+})();
+</script>
+{% endif %}
+{% endblock %}

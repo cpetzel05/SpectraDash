@@ -94,12 +94,37 @@ def _parse_settings(form: Any, current: dict[str, Any]) -> tuple[dict[str, Any],
     updated["theme_gallery"] = form.get("theme_gallery") == "on"
     updated["studio_animations"] = form.get("studio_animations") == "on"
     updated["show_weather_alerts"] = form.get("show_weather_alerts") == "on"
+    updated["enable_official_alerts"] = form.get("enable_official_alerts") == "on"
+    updated["enable_weather_radar"] = form.get("enable_weather_radar") == "on"
     updated["show_astronomy_details"] = form.get("show_astronomy_details") == "on"
     updated["show_system_status"] = form.get("show_system_status") == "on"
     updated["graph_style"] = form.get("graph_style") if form.get("graph_style") in {"premium","simple","off"} else "premium"
     updated["gauge_style"] = form.get("gauge_style") if form.get("gauge_style") in {"premium","compact"} else "premium"
     updated["seasonal_mode"] = form.get("seasonal_mode") if form.get("seasonal_mode") in {"automatic","spring","summer","autumn","winter","off"} else "automatic"
     updated["performance_mode"] = form.get("performance_mode") if form.get("performance_mode") in {"auto", "full", "lite"} else "auto"
+    updated["render_quality"] = form.get("render_quality") if form.get("render_quality") in {"standard", "hd", "hd-plus"} else "hd"
+    updated["atmospheric_backgrounds"] = form.get("atmospheric_backgrounds") == "on"
+    updated["show_daylight_arc"] = form.get("show_daylight_arc") == "on"
+    updated["show_pressure_trend"] = form.get("show_pressure_trend") == "on"
+    updated["show_precip_timeline"] = form.get("show_precip_timeline") == "on"
+    updated["show_today_high_low"] = form.get("show_today_high_low") == "on"
+    updated["show_custom_quote"] = form.get("show_custom_quote") == "on"
+    quote_mode = str(form.get("quote_mode", current.get("quote_mode", "fixed")))
+    updated["quote_mode"] = quote_mode if quote_mode in {"fixed", "rotate"} else "fixed"
+    updated["quote_text"] = str(form.get("quote_text", current.get("quote_text", ""))).strip()[:100]
+    rotation_text = str(form.get("quote_rotation_text", current.get("quote_rotation_text", "")))
+    lines = [line.strip()[:100] for line in rotation_text.splitlines() if line.strip()][:20]
+    updated["quote_rotation_text"] = "\n".join(lines)
+    quote_alignment = str(form.get("quote_alignment", current.get("quote_alignment", "center")))
+    updated["quote_alignment"] = quote_alignment if quote_alignment in {"left", "center", "right"} else "center"
+    quote_size = str(form.get("quote_size", current.get("quote_size", "medium")))
+    updated["quote_size"] = quote_size if quote_size in {"small", "medium", "large"} else "medium"
+    updated["quote_bold"] = form.get("quote_bold") == "on"
+    updated["quote_marks"] = form.get("quote_marks") == "on"
+    quote_color = str(form.get("quote_color", current.get("quote_color", "auto")))
+    updated["quote_color"] = quote_color if quote_color in {"auto", "accent", "black", "white", "red", "blue", "green", "yellow"} else "auto"
+    quote_layouts = [name for name in ("weather-station", "forecast-first", "minimal", "premium-lcd", "premium-hd", "designer") if form.get(f"quote_layout_{name}") == "on"]
+    updated["quote_layouts"] = quote_layouts
     updated["lite_disable_animations"] = form.get("lite_disable_animations") == "on"
     updated["lite_cache_icons"] = form.get("lite_cache_icons") == "on"
     updated["lite_reduced_dither"] = form.get("lite_reduced_dither") == "on"
@@ -121,7 +146,7 @@ def _parse_settings(form: Any, current: dict[str, Any]) -> tuple[dict[str, Any],
         updated["hourly_hours"] = 12 if int(form.get("hourly_hours", 24)) == 12 else 24
     except (TypeError, ValueError):
         updated["hourly_hours"] = 24
-    updated["layout_preset"] = form.get("layout_preset") if form.get("layout_preset") in {"weather-station", "minimal", "forecast-first", "premium-lcd", "designer"} else "weather-station"
+    updated["layout_preset"] = form.get("layout_preset") if form.get("layout_preset") in {"weather-station", "minimal", "forecast-first", "premium-lcd", "premium-hd", "designer"} else "weather-station"
     premium_lcd_mode = str(form.get("premium_lcd_mode", current.get("premium_lcd_mode", "dark")))
     updated["premium_lcd_mode"] = premium_lcd_mode if premium_lcd_mode in {"light", "dark", "automatic"} else "dark"
     submitted_theme = str(form.get("theme", "sunrise"))
@@ -200,6 +225,76 @@ def create_app() -> Flask:
         if not location_is_configured(config):
             return redirect(url_for("setup_wizard"))
         return render_template("dashboard.html", config=config, status=load_status(), system=system_info(), version=__version__)
+
+    @app.get("/graphics-lab")
+    def graphics_lab():
+        config = load_config()
+        if not location_is_configured(config):
+            return redirect(url_for("setup_wizard"))
+        return render_template("graphics_lab.html", config=config, version=__version__)
+
+    @app.post("/graphics-lab/render")
+    def graphics_lab_render():
+        """Render the same weather once in each quality mode, without panel I/O."""
+        from .render import render_weather
+        config = load_config()
+        if not location_is_configured(config):
+            return jsonify({"ok": False, "error": "Set a location first."}), 400
+        # Deliberately no live NWS or radar calls outside the normal weather fetch.
+        try:
+            weather = fetch_weather(config)
+            import time
+            output = {}
+            for quality in ("standard", "hd", "hd-plus"):
+                preview_config = {**config, "render_quality": quality,
+                                  "performance_mode": "full", "physical_display": False}
+                started = time.monotonic()
+                image = render_weather(weather, preview_config)
+                stream = io.BytesIO()
+                image.save(stream, format="PNG", optimize=False)
+                output[quality] = {"image": "data:image/png;base64," + __import__("base64").b64encode(stream.getvalue()).decode("ascii"),
+                                   "seconds": round(time.monotonic()-started, 2)}
+            return jsonify({"ok": True, "results": output})
+        except Exception as exc:
+            return jsonify({"ok": False, "error": str(exc)}), 503
+
+    @app.post("/graphics-lab/apply")
+    def graphics_lab_apply():
+        """Explicitly apply a quality choice and request a real panel refresh."""
+        config = load_config()
+        quality = str((request.get_json(silent=True) or {}).get("quality", ""))
+        if quality not in {"standard", "hd", "hd-plus"}:
+            return jsonify({"ok": False, "error": "Invalid graphics quality."}), 400
+        if not config.get("physical_display"):
+            return jsonify({"ok": False, "error": "Physical display is disabled in Settings. Enable it first."}), 409
+        health = _daemon_health()
+        if not health["healthy"]:
+            return jsonify({"ok": False, "error": "Display daemon is not healthy. Check Diagnostics."}), 503
+        config["render_quality"] = quality
+        save_config(config)
+        return _start_refresh(reason="graphics-lab", force_physical=True)
+
+    @app.get("/weather-alerts")
+    def weather_alerts_page():
+        config = load_config()
+        if not location_is_configured(config):
+            return redirect(url_for("setup_wizard"))
+        if not config.get("enable_official_alerts", True):
+            return render_template("weather_alerts.html", config=config, alerts=[], alert_status="disabled", version=__version__)
+        from .weather import _official_nws_alerts
+        alerts, status = _official_nws_alerts(float(config["latitude"]), float(config["longitude"]))
+        return render_template("weather_alerts.html", config=config, alerts=alerts, alert_status=status, version=__version__)
+
+    @app.get("/weather-radar")
+    def weather_radar_page():
+        config = load_config()
+        if not location_is_configured(config):
+            return redirect(url_for("setup_wizard"))
+        enabled = bool(config.get("enable_weather_radar", False))
+        return render_template("weather_radar.html", config=config, enabled=enabled,
+                               latitude=float(config["latitude"]) if enabled else None,
+                               longitude=float(config["longitude"]) if enabled else None,
+                               version=__version__)
 
     @app.route("/settings", methods=["GET", "POST"])
     def settings():

@@ -1,0 +1,23 @@
+name: Bug report
+description: Report a reproducible SpectraDash problem
+title: "[Bug]: "
+labels: ["bug", "needs-triage"]
+body:
+  - type: input
+    id: version
+    attributes: {label: SpectraDash version, placeholder: 8.0.0-rc18.5}
+    validations: {required: true}
+  - type: input
+    id: hardware
+    attributes: {label: Raspberry Pi and display model}
+    validations: {required: true}
+  - type: textarea
+    id: steps
+    attributes: {label: Reproduction steps}
+    validations: {required: true}
+  - type: textarea
+    id: expected
+    attributes: {label: Expected behavior}
+  - type: textarea
+    id: logs
+    attributes: {label: Sanitized logs or support bundle, render: shell}

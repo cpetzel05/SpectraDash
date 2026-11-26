@@ -85,6 +85,62 @@ def _local_alerts(current: dict[str, Any], daily: list[dict[str, Any]], hourly: 
     if temp >= 105: alerts.append({"severity":"warning","title":"Extreme heat","message":"Limit prolonged outdoor activity and stay hydrated."})
     return alerts[:2]
 
+def _official_nws_alerts(latitude: float, longitude: float) -> tuple[list[dict[str, str]], str]:
+    """Retrieve active NWS alerts for a US point; never invent an official warning.
+
+    Returns (alerts, status), where status is ok, unavailable, or outside-us.
+    NWS availability is best effort and does not interrupt the forecast.
+    """
+    # Broad geographic guard, including Alaska, Hawaii, and US territories.
+    if not (-180 <= longitude <= -60 and 0 <= latitude <= 72):
+        return [], "outside-us"
+    try:
+        response = SESSION.get(
+            "https://api.weather.gov/alerts/active",
+            params={"point": f"{latitude:.4f},{longitude:.4f}"},
+            headers={"User-Agent": "SpectraDash weather display (https://github.com/cpetzel05/SpectraDash)",
+                     "Accept": "application/geo+json"},
+            timeout=10,
+        )
+        response.raise_for_status()
+        payload = response.json()
+        if not isinstance(payload.get("features"), list):
+            return [], "unavailable"
+        alerts = []
+        for feature in payload["features"]:
+            props = feature.get("properties") or {}
+            if props.get("status", "Actual") != "Actual":
+                continue
+            if props.get("messageType") == "Cancel":
+                continue
+            event = str(props.get("event") or "Weather alert").strip()
+            headline = str(props.get("headline") or event).strip()
+            severity = str(props.get("severity") or "Unknown")
+            priority = {"Extreme": 0, "Severe": 1, "Moderate": 2, "Minor": 3}.get(severity, 4)
+            # Keep short enough for existing banners; details remain in source URL.
+            message = str(props.get("instruction") or props.get("description") or headline)
+            message = " ".join(message.split())[:240]
+            alerts.append({
+                "source": "NWS", "official": True,
+                "severity": "warning" if priority <= 1 else "watch",
+                "priority": priority, "title": event[:100], "message": message,
+                "headline": headline[:250], "url": str(props.get("@id") or ""),
+                "expires": str(props.get("expires") or ""),
+                "effective": str(props.get("effective") or ""),
+                "onset": str(props.get("onset") or ""),
+                "sent": str(props.get("sent") or ""),
+                "sender": str(props.get("senderName") or "National Weather Service")[:150],
+                "certainty": str(props.get("certainty") or "Unknown"),
+                "urgency": str(props.get("urgency") or "Unknown"),
+                "description": str(props.get("description") or "")[:12000],
+                "instruction": str(props.get("instruction") or "")[:8000],
+            })
+        alerts.sort(key=lambda alert: (alert["priority"], alert["title"]))
+        return alerts[:10], "ok"
+    except (requests.RequestException, ValueError, TypeError, AttributeError):
+        return [], "unavailable"
+
+
 def _aqi_label(aqi: int | None) -> str:
     if aqi is None: return "Unavailable"
     if aqi <= 50: return "Good"
@@ -158,7 +214,10 @@ def fetch_weather(config: dict[str, Any]) -> dict[str, Any]:
     current_hour = now.hour
     moon = _moon_phase(now.date())
     astronomy = _astronomy_details(now.date(), moon)
-    alerts = _local_alerts(current, daily, hourly)
+    local_advisories = _local_alerts(current, daily, hourly)
+    official_alerts, nws_status = _official_nws_alerts(float(config["latitude"]), float(config["longitude"])) if config.get("enable_official_alerts", True) else ([], "disabled")
+    # Official warnings take precedence; local condition heuristics are clearly labeled.
+    alerts = official_alerts + [dict(a, source="Forecast advisory", official=False) for a in local_advisories]
     return {
         "location": config["location_name"], "timezone": raw.get("timezone"), "updated": current["time"],
         "temperature": round(current["temperature_2m"]), "feels_like": round(current["apparent_temperature"]),
@@ -167,7 +226,7 @@ def fetch_weather(config: dict[str, Any]) -> dict[str, Any]:
         "wind_speed": round(current["wind_speed_10m"]), "wind_direction": current["wind_direction_10m"], "wind_compass": _compass(current["wind_direction_10m"]),
         "visibility": round((current.get("visibility") or 0) / (1609.344 if fahrenheit else 1000), 1),
         "description": desc, "icon": icon, "daily": daily, "hourly": hourly, "sunrise": sunrise, "sunset": sunset,
-        "uv_index": daily[0]["uv_max"], "aqi": aqi, "aqi_label": _aqi_label(aqi), "pm25": pm25, "moon": {**moon, **astronomy}, "alerts": alerts,
+        "uv_index": daily[0]["uv_max"], "aqi": aqi, "aqi_label": _aqi_label(aqi), "pm25": pm25, "moon": {**moon, **astronomy}, "alerts": alerts, "official_alerts": official_alerts, "nws_alert_status": nws_status,
         "summary": _plain_summary(current, daily, hourly, "°F" if fahrenheit else "°C"),
         "is_night": current_hour < datetime.fromisoformat(daily[0]["sunrise"]).hour or current_hour >= datetime.fromisoformat(daily[0]["sunset"]).hour,
         "temperature_symbol": "°F" if fahrenheit else "°C", "precipitation_unit": "in" if fahrenheit else "mm",

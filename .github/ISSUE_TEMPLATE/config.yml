@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: SpectraDash documentation
+    url: https://github.com/cpetzel05/SpectraDash#documentation
+    about: Review installation, FAQ, and troubleshooting guidance first.

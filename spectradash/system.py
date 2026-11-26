@@ -16,10 +16,15 @@ def system_info() -> dict[str, Any]:
     except Exception:
         pass
     disk = psutil.disk_usage("/")
+    boot_dt = datetime.fromtimestamp(psutil.boot_time())
+    uptime_seconds = max(0, int((datetime.now() - boot_dt).total_seconds()))
+    uptime_hours = uptime_seconds // 3600
+    uptime_days, uptime_hours = divmod(uptime_hours, 24)
+    uptime_text = f"{uptime_days}d {uptime_hours}h" if uptime_days else f"{uptime_hours}h"
     return {
         "hostname": socket.gethostname(), "cpu_percent": psutil.cpu_percent(interval=0.1),
         "memory_percent": psutil.virtual_memory().percent, "disk_percent": disk.percent,
-        "temperature_c": temp, "boot_time": datetime.fromtimestamp(psutil.boot_time()).isoformat(),
+        "temperature_c": temp, "boot_time": boot_dt.isoformat(), "uptime_text": uptime_text,
     }
 
 

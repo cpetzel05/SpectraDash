@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Official Weather Alerts · SpectraDash{% endblock %}
+{% block content %}
+<section class="panel" style="max-width:1050px;margin:auto;padding:24px">
+  <h1>Official NWS Weather Alerts</h1>
+  <p>Live active alerts for <strong>{{ config.location_name }}</strong>. This page fetches current information when opened or refreshed; the e-paper panel follows its normal refresh schedule.</p>
+  <p><a href="{{ url_for('weather_alerts_page') }}">Refresh official alerts</a> · <a href="https://www.weather.gov/" target="_blank" rel="noopener noreferrer">National Weather Service</a></p>
+  {% if alert_status == 'disabled' %}<p>Official alerts are disabled in Settings.</p>
+  {% elif alert_status == 'outside-us' %}<p>NWS point alerts are not available for this configured location.</p>
+  {% elif alert_status != 'ok' %}<p><strong>Unable to reach the NWS alert service.</strong> No conclusion can be drawn about current alerts. Please check weather.gov directly.</p>
+  {% elif not alerts %}<p>No active official NWS alerts were returned for this location at the time of this request.</p>
+  {% endif %}
+  {% for alert in alerts %}
+  <article style="border:2px solid #bd4336;border-radius:12px;padding:18px;margin:18px 0;overflow-wrap:anywhere">
+    <h2>{{ alert.title }}</h2>
+    <p><strong>Official NWS alert</strong> · {{ alert.sender }} · {{ alert.urgency }} urgency · {{ alert.certainty }} certainty</p>
+    <p><strong>Effective:</strong> {{ alert.effective or 'Not specified' }} · <strong>Expires:</strong> {{ alert.expires or 'Not specified' }}</p>
+    {% if alert.headline %}<p><strong>{{ alert.headline }}</strong></p>{% endif %}
+    {% if alert.description %}<h3>Description</h3><p style="white-space:pre-wrap">{{ alert.description }}</p>{% endif %}
+    {% if alert.instruction %}<h3>Safety instructions</h3><p style="white-space:pre-wrap">{{ alert.instruction }}</p>{% endif %}
+    {% if alert.url.startswith('https://api.weather.gov/') %}<p><a href="{{ alert.url }}" target="_blank" rel="noopener noreferrer">View original NWS alert</a></p>{% endif %}
+  </article>
+  {% endfor %}
+  <p><small>SpectraDash is not an emergency warning device. Keep Wireless Emergency Alerts and NOAA Weather Radio enabled for urgent warnings.</small></p>
+</section>
+{% endblock %}

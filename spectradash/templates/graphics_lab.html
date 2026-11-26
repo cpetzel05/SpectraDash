@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Graphics Lab · SpectraDash{% endblock %}
+{% block content %}
+<section class="page-heading"><div><p class="eyebrow">Spectra HD Graphics 2.0</p><h1>Graphics comparison lab</h1><p>Compare Standard, HD, and HD+ using the same forecast and layout. Generate previews first, then explicitly choose a mode to send to the e-paper panel.</p></div></section>
+<section class="panel" style="padding:24px">
+  <p>Each image uses the six-color panel palette. HD renders icons at 2× resolution; HD+ uses 3× icon rendering and selective dithering. These are software previews: actual ink appearance can vary.</p>
+  <button id="generate" class="button" type="button">Generate three previews</button>
+  <p id="status" role="status">Previews are generated only when requested. On a Pi Zero 2 W this may take a while.</p>
+  <div id="comparison" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px"></div>
+  <p>To keep a mode, open <a href="{{ url_for('settings') }}">Settings</a> and change <strong>Spectra rendering quality</strong>. Previews do not change settings. The Apply button saves the selected mode and requests a physical refresh.</p>
+</section>
+{% endblock %}
+{% block scripts %}
+<script>
+(function(){
+ const button=document.getElementById('generate'), status=document.getElementById('status'), grid=document.getElementById('comparison');
+ button.addEventListener('click',async()=>{
+   button.disabled=true; status.textContent='Rendering three quality levels. Please wait…'; grid.replaceChildren();
+   try {
+     const response=await fetch('{{ url_for("graphics_lab_render") }}',{method:'POST'});
+     const payload=await response.json();
+     if(!response.ok || !payload.ok) throw new Error(payload.error || 'Unable to generate previews');
+     for(const [quality,details] of Object.entries(payload.results)){
+       const card=document.createElement('article'); card.className='panel'; card.style.padding='12px';
+       const title=document.createElement('h3'); title.textContent=quality.toUpperCase()+' · '+details.seconds+'s';
+       const send=document.createElement('button'); send.type='button';send.className='button';send.textContent='Apply '+quality.toUpperCase()+' and refresh physical display';
+       send.addEventListener('click',async()=>{
+         if(!confirm('Apply '+quality.toUpperCase()+' and refresh the physical e-paper display?'))return;
+         send.disabled=true;status.textContent='Queuing physical display refresh…';
+         try {const r=await fetch('{{ url_for("graphics_lab_apply") }}',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({quality})});const data=await r.json();if(!r.ok||!data.ok)throw new Error(data.error||data.message||'Unable to refresh');status.textContent='Saved '+quality.toUpperCase()+' and queued a physical panel refresh. Check Dashboard or Diagnostics for completion.';}
+         catch(e){status.textContent='Display error: '+e.message;}finally{send.disabled=false;}
+       });
+       const img=document.createElement('img'); img.src=details.image; img.alt=quality+' six-color preview'; img.style='width:100%;height:auto;image-rendering:auto;border-radius:8px';
+       const zoom=document.createElement('div');zoom.style='height:175px;overflow:hidden;border:1px solid #ddd;border-radius:8px;margin:10px 0';
+       const crop=document.createElement('img');crop.src=details.image;crop.alt=quality+' magnified icon detail';crop.style='width:430%;max-width:none;transform:translate(-1%,-44%);image-rendering:pixelated';zoom.append(crop);
+       const hint=document.createElement('p');hint.textContent='Magnified artwork detail (pixel zoom)';
+       card.append(title,img,hint,zoom,send);grid.append(card);
+     }
+     status.textContent='Done. All three images use the same weather data; no physical refresh was triggered.';
+   } catch(e) {status.textContent='Preview error: '+e.message;}
+   finally {button.disabled=false;}
+ });
+})();
+</script>
+{% endblock %}

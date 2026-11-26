@@ -7,7 +7,7 @@ from pathlib import Path
 from typing import Any
 from functools import lru_cache
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageEnhance
 
 WIDTH, HEIGHT = 1600, 1200
 P = {"black": (0,0,0), "white": (255,255,255), "yellow": (255,224,0), "red": (220,35,45), "blue": (25,90,190), "green": (0,145,90)}
@@ -51,11 +51,19 @@ def font(size: int, bold: bool=False):
 def _fit(draw, text, box, start, color, bold=True, anchor="mm"):
     x1,y1,x2,y2=box; size=start
     text=str(text)
-    while size>14:
+    while size>=14:
         f=font(size,bold); bb=draw.textbbox((0,0),text,font=f)
         if bb[2]-bb[0] <= x2-x1-12 and bb[3]-bb[1] <= y2-y1-8:
             draw.text(((x1+x2)//2,(y1+y2)//2),text,font=f,fill=color,anchor=anchor); return
         size-=2
+    # Never silently omit long labels; truncate with an ellipsis if necessary.
+    f=font(14,bold)
+    if y2-y1 < 14 or x2-x1 < 18: return
+    available=max(1,x2-x1-12)
+    while text and draw.textbbox((0,0),text+'…',font=f)[2] > available:
+        text=text[:-1]
+    if text:
+        draw.text(((x1+x2)//2,(y1+y2)//2),text+'…',font=f,fill=color,anchor=anchor)
 
 
 def _card(draw, box, radius=22, fill=None, outline=None, width=4):
@@ -235,6 +243,9 @@ def _realistic_moon(draw, box, label="", illumination=50, outline=True):
     alpha=alpha.resize((size,size),Image.Resampling.LANCZOS)
     # Neutral grayscale is represented using black/white dithering so no false
     # red, yellow, blue, or green pixels appear on the six-colour panel.
+    # Local tonal contrast keeps maria and crater rims readable at small sizes.
+    if size >= 35:
+        moon = ImageEnhance.Contrast(moon).enhance(1.20)
     moon=moon.convert("1",dither=Image.Dither.FLOYDSTEINBERG).convert("RGB")
     final_mask=alpha.point(lambda v:255 if v>80 else 0)
     if outline:
@@ -244,7 +255,69 @@ def _realistic_moon(draw, box, label="", illumination=50, outline=True):
     draw._image.paste(moon,(x1,y1),final_mask)
 
 
+@lru_cache(maxsize=24)
+def _photo_icon_asset(name: str):
+    path = Path(__file__).resolve().parent / "assets" / "photorealistic" / (name + ".png")
+    if not path.is_file():
+        return None
+    with Image.open(path) as source:
+        return source.convert("RGBA")
+
+
+def _photo_weather_icon(draw, kind, box, night=False):
+    """Paste bundled photorealistic artwork, keeping layout backgrounds intact."""
+    aliases = {"drizzle":"rain", "ice":"snow"}
+    name = aliases.get(kind, kind)
+    if night and name in {"sun", "sun-cloud"}:
+        name = "moon" if name == "sun" else "cloud"
+    asset = _photo_icon_asset(name)
+    if asset is None:
+        return False
+    x1,y1,x2,y2 = map(int,box)
+    width,height=x2-x1,y2-y1
+    if width < 15 or height < 15:
+        return False
+    # Fit artwork within its original icon box. No theme-specific coordinates.
+    margin=max(1,int(min(width,height)*.035))
+    icon=asset.copy()
+    icon.thumbnail((max(1,width-2*margin),max(1,height-2*margin)),Image.Resampling.LANCZOS)
+    px=x1+(width-icon.width)//2;py=y1+(height-icon.height)//2
+    draw._image.paste(icon,(px,py),icon.getchannel("A"))
+    return True
+
+
 def _icon(draw, kind, box, night=False, frame=0, config=None, ray_scale=1.0):
+    """Render icons on a transparent supersampled layer for smooth Spectra 6 edges.
+
+    Supersampling is opt-in through quality mode and is skipped in Lite mode.
+    The source icon artwork and color palette remain unchanged.
+    """
+    config = config or {}
+    if (config.get("render_quality") == "hd-plus" and config.get("photo_weather_icons", True)
+            and _photo_weather_icon(draw, kind, box, night)):
+        return
+    quality = str(config.get("render_quality", "standard"))
+    scale = {"hd": 2, "hd-plus": 3}.get(quality, 1)
+    if config.get("performance_mode") == "lite" or config.get("_icon_native"):
+        scale = 1
+    x1, y1, x2, y2 = map(int, box)
+    width, height = x2-x1, y2-y1
+    if scale == 1 or min(width, height) < 25 or width*height > 550000:
+        return _icon_native(draw, kind, box, night, frame, config, ray_scale)
+    layer = Image.new("RGBA", (width*scale, height*scale), (0,0,0,0))
+    local = ImageDraw.Draw(layer)
+    native_config = {**config, "_icon_native": True}
+    _icon_native(local, kind, (0,0,width*scale,height*scale), night, frame, native_config, ray_scale)
+    layer = layer.resize((width,height), Image.Resampling.LANCZOS)
+    # Alpha compositing preserves existing backgrounds and layout artwork.
+    base = draw._image
+    if base.mode == "RGBA":
+        base.alpha_composite(layer, (x1,y1))
+    else:
+        base.paste(layer.convert("RGB"), (x1,y1), layer.getchannel("A"))
+
+
+def _icon_native(draw, kind, box, night=False, frame=0, config=None, ray_scale=1.0):
     """Draw a Spectra-palette weather icon.
 
     The 3D style is simulated with layered palette shapes rather than gradients,
@@ -255,6 +328,7 @@ def _icon(draw, kind, box, night=False, frame=0, config=None, ray_scale=1.0):
     shadows = bool(config.get("icon_shadows", True)) and style in {"3d", "premium"}
     highlights = bool(config.get("icon_highlights", True)) and style in {"3d", "premium"}
     x1,y1,x2,y2=map(int,box); w=x2-x1; h=y2-y1; cx=(x1+x2)//2; cy=(y1+y2)//2
+    quality = str(config.get("render_quality", "standard"))
     shift=(frame % 3 - 1) * max(2, int(w*.018))
     outline = P["black"]
     stroke = max(3, int(min(w,h)*.025))
@@ -300,13 +374,13 @@ def _icon(draw, kind, box, night=False, frame=0, config=None, ray_scale=1.0):
                 rng=random.Random((int(px)*131 + int(py)*17 + int(w)*7 + int(h)) & 0xffffffff)
                 # Small palette puffs and short contour strokes create visible
                 # texture without relying on unsupported alpha gradients.
-                for i in range(28):
+                for i in range(12 if quality == "standard" else (45 if quality == "hd" else 85)):
                     tx=px+rng.uniform(-cloud_w*.39,cloud_w*.39)
                     ty=py+rng.uniform(-cloud_h*.30,cloud_h*.34)
                     rr=rng.uniform(cloud_h*.025,cloud_h*.075)
                     col=rng.choice([base,base,P["white"],shade])
                     draw.ellipse((tx-rr,ty-rr,tx+rr,ty+rr),fill=col)
-                for i in range(8):
+                for i in range(4 if quality == "standard" else (10 if quality == "hd" else 15)):
                     yy=py+cloud_h*(.10+i*.035)
                     draw.arc((px-cloud_w*(.34-i*.018),yy-cloud_h*.10,
                               px+cloud_w*(.36-i*.012),yy+cloud_h*.14),8,172,
@@ -326,7 +400,7 @@ def _icon(draw, kind, box, night=False, frame=0, config=None, ray_scale=1.0):
         else:
             r=min(w,h)//5
             angle=(frame%8)*math.pi/16
-            ray_count=24 if style=="premium" else 12
+            ray_count=(12 if quality == "standard" else (24 if quality == "hd" else 32)) if style=="premium" else 12
             for i in range(ray_count):
                 a=angle+i*(2*math.pi/ray_count)
                 p1=(cx+math.cos(a)*r*1.55,cy+math.sin(a)*r*1.55)
@@ -558,6 +632,231 @@ def _lcd_panel(draw, box, radius=18, outline=None, width=3, fill=None):
     )
 
 
+
+def _system_health(info: dict[str, Any]) -> tuple[str, str]:
+    """Return a concise health label and palette color for the Pi status footer."""
+    temp = info.get("temperature_c")
+    cpu = float(info.get("cpu_percent") or 0)
+    ram = float(info.get("memory_percent") or 0)
+    disk = float(info.get("disk_percent") or 0)
+    if (temp is not None and temp >= 80) or ram >= 95 or disk >= 98:
+        return "ATTENTION", P["red"]
+    if (temp is not None and temp >= 70) or cpu >= 90 or ram >= 85 or disk >= 90:
+        return "WARM", P["yellow"]
+    return "GOOD", P["green"]
+
+
+def _draw_system_status_footer(
+    d: ImageDraw.ImageDraw,
+    c: dict[str, Any],
+    *,
+    text_color,
+    border_color,
+    background,
+    left_text: str = "",
+    right_text: str = "",
+) -> None:
+    """Draw the same Pi-health footer on every e-paper layout."""
+    try:
+        from .system import system_info
+        info = system_info()
+        temp = info.get("temperature_c")
+        health, health_color = _system_health(info)
+
+        y1, y2 = 1167, 1199
+        d.rectangle((30, y1, 1570, y2), fill=background, outline=border_color, width=2)
+
+        # Health badge remains large enough to be readable at a glance on e-paper.
+        d.rounded_rectangle((43, 1172, 185, 1194), radius=10, fill=health_color, outline=border_color, width=1)
+        d.text((114, 1183), f"PI {health}", font=font(13, True), fill=P["black"], anchor="mm")
+
+        metrics = (
+            f'CPU {info.get("cpu_percent","—")}%  ·  '
+            f'{temp if temp is not None else "—"}°C  ·  '
+            f'RAM {info.get("memory_percent","—")}%  ·  '
+            f'DISK {info.get("disk_percent","—")}%  ·  '
+            f'UP {info.get("uptime_text","—")}'
+        )
+        d.text((800, 1183), metrics, font=font(14, True), fill=text_color, anchor="mm")
+
+        if left_text:
+            _fit(d, left_text, (200, 1172, 460, 1195), 12, text_color, False)
+        if right_text:
+            _fit(d, right_text, (1320, 1172, 1557, 1195), 12, text_color, False)
+    except Exception:
+        pass
+
+
+
+def _enhance_for_spectra(image: Image.Image, config: dict[str, Any]) -> Image.Image:
+    """Prepare art for the six-color panel without changing the stable layout geometry."""
+    quality = str(config.get("render_quality", "hd"))
+    if quality == "standard":
+        return image
+    # A restrained local-contrast pass preserves lettering and small illustrated
+    # details before the six-color quantizer discards intermediate shades.
+    out = ImageEnhance.Contrast(image.convert("RGB")).enhance(1.06 if quality == "hd" else 1.11)
+    out = out.filter(ImageFilter.UnsharpMask(radius=1.1 if quality == "hd" else 1.6, percent=125 if quality == "hd" else 165, threshold=3))
+    if quality == "hd-plus":
+        out = ImageEnhance.Sharpness(out).enhance(1.18)
+    return out
+
+
+def _atmospheric_accents(draw: ImageDraw.ImageDraw, weather: dict[str, Any], box, config: dict[str, Any], dark: bool=False) -> None:
+    if not config.get("atmospheric_backgrounds", True):
+        return
+    x1,y1,x2,y2 = map(int, box)
+    icon = str(weather.get("icon", "")).lower()
+    is_night = bool(weather.get("is_night"))
+    # Sparse, deterministic texture survives palette conversion while keeping text clean.
+    if is_night:
+        for i in range(20):
+            x=x1+24+(i*83)%max(40,x2-x1-48); y=y1+20+(i*47)%max(30,y2-y1-40)
+            draw.ellipse((x,y,x+3,y+3), fill=P["yellow"] if i%3==0 else P["white"])
+    elif "rain" in icon or "drizzle" in icon or "storm" in icon:
+        for i in range(18):
+            x=x1+20+(i*91)%max(40,x2-x1-40); y=y1+18+(i*43)%max(40,y2-y1-40)
+            draw.line((x,y,x-8,y+20),fill=P["blue"],width=2)
+    elif "snow" in icon:
+        for i in range(18):
+            x=x1+20+(i*79)%max(40,x2-x1-40); y=y1+18+(i*53)%max(40,y2-y1-40)
+            draw.ellipse((x,y,x+5,y+5),fill=P["blue"] if i%4==0 else P["black"])
+    elif "sun" in icon or "clear" in icon:
+        # Short sunburst ticks read as texture rather than a fake gradient.
+        cx=x2-78; cy=y1+72
+        for a in range(0,360,30):
+            r1=40; r2=55
+            rad=math.radians(a)
+            draw.line((cx+math.cos(rad)*r1,cy+math.sin(rad)*r1,cx+math.cos(rad)*r2,cy+math.sin(rad)*r2),fill=P["yellow"],width=3)
+
+
+def _daylight_progress(draw: ImageDraw.ImageDraw, weather: dict[str, Any], box, color, text_color) -> None:
+    x1,y1,x2,y2=map(int,box)
+    try:
+        now=datetime.fromisoformat(weather["updated"])
+        day=weather.get("daily", [{}])[0]
+        sunrise=datetime.fromisoformat(day.get("sunrise"))
+        sunset=datetime.fromisoformat(day.get("sunset"))
+        span=max(1,(sunset-sunrise).total_seconds())
+        progress=max(0.0,min(1.0,(now-sunrise).total_seconds()/span))
+    except Exception:
+        progress=.5
+    draw.arc((x1+10,y1+5,x2-10,y2+55),180,360,fill=P["black"],width=4)
+    angle=math.radians(180+180*progress)
+    cx=(x1+x2)//2; cy=y2+30; rx=(x2-x1-20)/2; ry=(y2-y1+50)/2
+    sx=cx+math.cos(angle)*rx; sy=cy+math.sin(angle)*ry
+    draw.ellipse((sx-9,sy-9,sx+9,sy+9),fill=P["yellow"],outline=P["red"],width=2)
+    draw.text((x1+8,y2-5),weather.get("sunrise","—"),font=font(12,True),fill=text_color,anchor="ls")
+    draw.text((x2-8,y2-5),weather.get("sunset","—"),font=font(12,True),fill=text_color,anchor="rs")
+
+
+def _pressure_sparkline(draw: ImageDraw.ImageDraw, hourly: list[dict[str,Any]], box, color, text_color) -> None:
+    pts=[float(h["pressure"]) for h in hourly[:12] if h.get("pressure") is not None]
+    if len(pts)<2: return
+    x1,y1,x2,y2=map(int,box); lo=min(pts); hi=max(pts); span=max(.1,hi-lo)
+    xy=[]
+    for i,v in enumerate(pts):
+        x=x1+(x2-x1)*i/max(1,len(pts)-1); y=y2-(y2-y1)*(v-lo)/span
+        xy.append((x,y))
+    draw.line(xy,fill=color,width=4)
+    for x,y in xy[::max(1,len(xy)//5)]: draw.ellipse((x-3,y-3,x+3,y+3),fill=color)
+    delta=pts[-1]-pts[0]; arrow="↑" if delta>1 else "↓" if delta<-1 else "→"
+    draw.text((x2,y1),f"{arrow} {delta:+.0f} hPa",font=font(12,True),fill=text_color,anchor="ra")
+
+
+def _precip_timeline(draw: ImageDraw.ImageDraw, hourly: list[dict[str,Any]], box, color, text_color) -> None:
+    rows=hourly[:6]
+    if not rows: return
+    x1,y1,x2,y2=map(int,box); gap=5; bw=(x2-x1-gap*(len(rows)-1))/len(rows)
+    for i,h in enumerate(rows):
+        p=max(0,min(100,float(h.get("precip_probability") or 0)))
+        x=x1+i*(bw+gap); bh=(y2-y1-20)*p/100
+        draw.rectangle((x,y2-bh-15,x+bw,y2-15),fill=color if p>=40 else P["blue"],outline=P["black"])
+        draw.text((x+bw/2,y2),str(h.get("time","")),font=font(9,True),fill=text_color,anchor="ms")
+
+def _selected_quote(config: dict[str, Any], stamp: datetime) -> str:
+    """Resolve the fixed or rotating user quote for this refresh."""
+    if not config.get("show_custom_quote", False):
+        return ""
+    layout = str(config.get("layout_preset", "weather-station"))
+    allowed = config.get("quote_layouts", [])
+    if isinstance(allowed, list) and layout not in allowed:
+        return ""
+    mode = str(config.get("quote_mode", "fixed"))
+    if mode == "rotate":
+        raw = str(config.get("quote_rotation_text", ""))
+        quotes = [line.strip()[:100] for line in raw.splitlines() if line.strip()]
+        if quotes:
+            refresh_seconds = max(60, int(config.get("refresh_minutes", 45)) * 60)
+            return quotes[int(stamp.timestamp() // refresh_seconds) % len(quotes)]
+    return str(config.get("quote_text", "")).strip()[:100]
+
+
+def _quote_color(config: dict[str, Any], dark: bool) -> tuple[int, int, int]:
+    requested = str(config.get("quote_color", "auto"))
+    if requested in P:
+        return P[requested]
+    if requested == "accent":
+        theme = THEMES.get(config.get("theme"), THEMES["sunrise"])
+        return P.get(theme.get("accent", "yellow"), P["yellow"])
+    return P["yellow"] if dark else P["black"]
+
+
+def _apply_quote_header(image: Image.Image, weather: dict[str, Any], config: dict[str, Any], stamp: datetime) -> Image.Image:
+    """Add a global quote ribbon without allowing it to collide with layout content.
+
+    The existing composition is proportionally inset into a premium mat. This keeps
+    every legacy layout intact while reserving a dedicated, collision-free header.
+    """
+    quote = _selected_quote(config, stamp)
+    if not quote:
+        return image
+    if config.get("quote_marks", False):
+        quote = f'“{quote}”'
+    layout = str(config.get("layout_preset", "weather-station"))
+    dark = layout in {"premium-lcd", "premium-hd"} and _resolved_premium_lcd_mode(weather, config) == "dark"
+    bg = P["black"] if dark else P["white"]
+    fg = _quote_color(config, dark)
+    border = P["white"] if dark else P["black"]
+    canvas = Image.new("RGB", (WIDTH, HEIGHT), bg)
+
+    header_h = 64
+    margin_x = 28
+    content_top = 72
+    content_bottom = HEIGHT - 12
+    avail_w = WIDTH - margin_x * 2
+    avail_h = content_bottom - content_top
+    scale = min(avail_w / image.width, avail_h / image.height)
+    size = (max(1, int(image.width * scale)), max(1, int(image.height * scale)))
+    resized = image.resize(size, Image.Resampling.LANCZOS)
+    x = (WIDTH - size[0]) // 2
+    y = content_top + (avail_h - size[1]) // 2
+    canvas.paste(resized, (x, y))
+
+    d = ImageDraw.Draw(canvas)
+    d.line((28, header_h, WIDTH - 28, header_h), fill=border, width=2)
+    size_map = {"small": 20, "medium": 26, "large": 32}
+    start = size_map.get(str(config.get("quote_size", "medium")), 26)
+    bold = bool(config.get("quote_bold", True))
+    align = str(config.get("quote_alignment", "center"))
+    box = (46, 7, WIDTH - 46, 57)
+    font_size = start
+    while font_size > 14:
+        f = font(font_size, bold)
+        bb = d.textbbox((0, 0), quote, font=f)
+        if bb[2] - bb[0] <= box[2] - box[0] and bb[3] - bb[1] <= box[3] - box[1]:
+            break
+        font_size -= 1
+    f = font(font_size, bold)
+    if align == "left":
+        d.text((box[0], 32), quote, font=f, fill=fg, anchor="lm")
+    elif align == "right":
+        d.text((box[2], 32), quote, font=f, fill=fg, anchor="rm")
+    else:
+        d.text((WIDTH // 2, 32), quote, font=f, fill=fg, anchor="mm")
+    return canvas
+
+
 def _resolved_premium_lcd_mode(weather: dict[str, Any], config: dict[str, Any]) -> str:
     """Resolve Premium LCD Light, Dark, or Automatic appearance."""
     requested = str(config.get("premium_lcd_mode", "dark"))
@@ -569,6 +868,7 @@ def _resolved_premium_lcd_mode(weather: dict[str, Any], config: dict[str, Any]) 
 def _render_premium_lcd(w: dict[str, Any], c: dict[str, Any], mode: str, frame: int, stamp: datetime) -> Image.Image:
     """LCD-inspired alternate layout with dedicated light and dark palettes."""
     appearance = _resolved_premium_lcd_mode(w, c)
+    hd_layout = c.get("layout_preset") == "premium-hd"
     light_mode = appearance == "light"
     background = P["white"] if light_mode else P["black"]
     panel_fill = P["white"] if light_mode else P["black"]
@@ -583,11 +883,15 @@ def _render_premium_lcd(w: dict[str, Any], c: dict[str, Any], mode: str, frame: 
     img = Image.new("RGB", (WIDTH, HEIGHT), background)
     d = ImageDraw.Draw(img)
 
+    _atmospheric_accents(d, w, (20, 20, 1580, 430), c, dark=not light_mode)
+
     # Top-left current conditions panel.
     _lcd_panel(d, (10, 10, 860, 525), 20, border, 3, panel_fill)
     d.text((38, 34), "CURRENT CONDITIONS", font=font(24), fill=text)
     d.text((38, 78), f'{w.get("temperature", "—")}{w.get("temperature_symbol", "°")}', font=font(108, True), fill=text)
     d.text((40, 205), f'Feels like {w.get("feels_like", w.get("temperature", "—"))}{w.get("temperature_symbol", "°")}', font=font(27), fill=text)
+    if c.get("show_today_high_low", True) and w.get("daily"):
+        d.text((40, 232), f'TODAY HIGH {w["daily"][0].get("high","—")}°  ·  LOW {w["daily"][0].get("low","—")}°', font=font(17, True), fill=warm)
     d.line((38, 250, 295, 250), fill=border, width=2)
     d.text((38, 270), "HUMIDITY", font=font(17, True), fill=text)
     d.text((38, 302), f'{w.get("humidity", "—")}% ', font=font(31), fill=text)
@@ -601,10 +905,14 @@ def _render_premium_lcd(w: dict[str, Any], c: dict[str, Any], mode: str, frame: 
     _fit(d, w.get("description", ""), (350, 390, 820, 455), 36, text, False)
     d.line((20, 465, 850, 465), fill=border, width=2)
     d.text((38, 486), f'UV {w.get("uv_index", "—")}', font=font(20, True), fill=text)
-    d.text((210, 486), f'SUNRISE {w.get("sunrise", "—")}', font=font(20, True), fill=warm)
+    if c.get("layout_preset") == "premium-hd" and c.get("show_daylight_arc", True):
+        _daylight_progress(d, w, (205, 472, 605, 515), warm, text)
+    else:
+        d.text((210, 486), f'SUNRISE {w.get("sunrise", "—")}', font=font(20, True), fill=warm)
     # Fit the sunset value into a reserved column so longer localized times
     # cannot run underneath the moon artwork.
-    _fit(d, f'SUNSET {w.get("sunset", "—")}', (420, 468, 606, 520), 20, warm, True)
+    if not (c.get("layout_preset") == "premium-hd" and c.get("show_daylight_arc", True)):
+        _fit(d, f'SUNSET {w.get("sunset", "—")}', (420, 468, 606, 520), 20, warm, True)
     moon = w.get("moon", {})
     if c.get("show_moon", True):
         # Give the moon a dedicated 42 px cell with clear horizontal spacing
@@ -642,8 +950,15 @@ def _render_premium_lcd(w: dict[str, Any], c: dict[str, Any], mode: str, frame: 
 
     # Seven large forecast cards.
     days=w.get("daily",[])[:7]
-    gap=10; x0=10; y0=540; cw=(WIDTH-20-gap*6)//7; bottom=1165
+    gap=10; x0=10; y0=540; cw=(WIDTH-20-gap*6)//7; bottom=1055 if hd_layout else 1165
     date_style=_resolved_forecast_date_style(c)
+    icon_top = 90 if hd_layout else 95
+    icon_bottom = 275 if hd_layout else 335
+    desc_top = 275 if hd_layout else 335
+    desc_bottom = 335 if hd_layout else 410
+    temp_y = 375 if hd_layout else 455
+    rain_y = 425 if hd_layout else 515
+    wind_y = 468 if hd_layout else 555
     for i,day in enumerate(days):
         x=x0+i*(cw+gap)
         today=i==0 and str(c.get("forecast_first_day_label","today"))=="today"
@@ -654,27 +969,44 @@ def _render_premium_lcd(w: dict[str, Any], c: dict[str, Any], mode: str, frame: 
         date=_forecast_date_text(day,"expanded" if date_style!="off" else "off")
         if date:
             d.text((x+cw//2,y0+72),date,font=font(18),fill=muted,anchor='mm')
-        _icon(d,day.get("icon","cloudy"),(x+18,y0+95,x+cw-18,y0+335),False,frame+i,{**c,"icon_style":"premium"},ray_scale=.55)
-        _fit(d,day.get("description",""),(x+10,y0+335,x+cw-10,y0+410),23,text,False)
-        d.text((x+cw//2-8,y0+455),f'{day.get("high","—")}°',font=font(34,True),fill=warm,anchor='ra')
-        d.text((x+cw//2+8,y0+455),f'{day.get("low","—")}°',font=font(34,True),fill=water,anchor='la')
-        d.text((x+cw//2,y0+515),f'Rain {day.get("precip_probability","—")}% ',font=font(19),fill=water,anchor='mm')
-        d.text((x+cw//2,y0+555),f'Wind {day.get("wind","—")} {w.get("wind_unit","")}',font=font(17),fill=text,anchor='mm')
+        _icon(d,day.get("icon","cloudy"),(x+18,y0+icon_top,x+cw-18,y0+icon_bottom),False,frame+i,{**c,"icon_style":"premium"},ray_scale=.55)
+        _fit(d,day.get("description",""),(x+10,y0+desc_top,x+cw-10,y0+desc_bottom),23,text,False)
+        d.text((x+cw//2-8,y0+temp_y),f'{day.get("high","—")}°',font=font(32 if hd_layout else 34,True),fill=warm,anchor='ra')
+        d.text((x+cw//2+8,y0+temp_y),f'{day.get("low","—")}°',font=font(32 if hd_layout else 34,True),fill=water,anchor='la')
+        d.text((x+cw//2,y0+rain_y),f'Rain {day.get("precip_probability","—")}% ',font=font(18 if hd_layout else 19),fill=water,anchor='mm')
+        d.text((x+cw//2,y0+wind_y),f'Wind {day.get("wind","—")} {w.get("wind_unit","")}',font=font(16 if hd_layout else 17),fill=text,anchor='mm')
+    if hd_layout:
+        # Dedicated instrument rail prevents premium trends from crowding forecast cards.
+        _lcd_panel(d,(10,1065,1590,1162),14,border,2,panel_fill)
+        if c.get("show_pressure_trend", True):
+            d.text((32,1080),"PRESSURE · 12H",font=font(14,True),fill=text)
+            _pressure_sparkline(d,w.get("hourly",[]),(32,1100,500,1148),warm,text)
+        if c.get("show_precip_timeline", True):
+            d.text((560,1080),"PRECIPITATION · NEXT 6 HOURS",font=font(14,True),fill=text)
+            _precip_timeline(d,w.get("hourly",[]),(560,1095,1185,1150),water,text)
+        if c.get("show_daylight_arc", True):
+            d.text((1235,1080),"DAYLIGHT",font=font(14,True),fill=text)
+            _daylight_progress(d,w,(1220,1092,1565,1150),warm,text)
     if c.get("show_weather_alerts", True) and w.get("alerts"):
         alert=w["alerts"][0]
         d.rounded_rectangle((875, 130, 1195, 220), radius=14, fill=P["red"], outline=border, width=2)
-        _fit(d, alert.get("title","WEATHER ALERT").upper(), (890,142,1180,177), 20, P["white"], True)
+        _fit(d, (("NWS: " if alert.get("official") else "ADVISORY: ") + alert.get("title","WEATHER ALERT")).upper(), (890,142,1180,177), 20, P["white"], True)
         _fit(d, alert.get("message",""), (890,178,1180,212), 14, P["white"], False)
     footer=f'LAST UPDATED: {stamp.strftime("%b %-d, %Y %-I:%M %p").upper()} · {appearance.upper()} MODE'
     if c.get("show_system_status", False):
-        try:
-            from .system import system_info
-            info=system_info(); temp=info.get("temperature_c")
-            footer += f' · PI {temp if temp is not None else "—"}°C · RAM {info.get("memory_percent","—")}% · DISK {info.get("disk_percent","—")}%'
-        except Exception:
-            pass
-    d.text((800,1182),footer,font=font(16),fill=text,anchor='ms')
-    canonical=quantize_spectra(img,fast=(mode=="lite" and c.get("lite_reduced_dither",True)))
+        _draw_system_status_footer(
+            d, c,
+            text_color=text,
+            border_color=border,
+            background=panel_fill,
+            left_text=f'UPDATED {stamp.strftime("%-I:%M %p").upper()}',
+            right_text=f'{appearance.upper()} MODE',
+        )
+    else:
+        d.text((800,1182),footer,font=font(16),fill=text,anchor='ms')
+    img = _apply_quote_header(img, w, c, stamp)
+    img=_enhance_for_spectra(img,c)
+    canonical=quantize_spectra_quality(img,c.get("render_quality", "standard"),fast=(mode=="lite" and c.get("lite_reduced_dither",True)))
     return adapt_to_profile(canonical,c,fast=(mode=="lite" and c.get("lite_reduced_dither",True)))
 
 def render_weather(w: dict[str,Any], c: dict[str,Any]) -> Image.Image:
@@ -699,7 +1031,13 @@ def render_weather(w: dict[str,Any], c: dict[str,Any]) -> Image.Image:
     theme=THEMES.get(c.get("theme"),THEMES["sunrise"]); primary=P[theme["primary"]]; accent=P[theme["accent"]]; secondary=P[theme["secondary"]]
     if c.get("auto_day_night") and w.get("is_night") and c.get("theme")!="classic": primary=P["blue"]
     frame_count=max(1,int(c.get("animation_frames",4))); stamp=datetime.fromisoformat(w["updated"]); frame=int(stamp.timestamp()//max(60,int(c.get("refresh_minutes",45))*60))%frame_count
-    if c.get("layout_preset") == "premium-lcd":
+    if c.get("layout_preset") in {"premium-lcd", "premium-hd"}:
+        if c.get("layout_preset") == "premium-hd":
+            c = c.copy()
+            c["render_quality"] = c.get("render_quality", "hd-plus")
+            c["icon_style"] = "premium"
+            c["show_hourly_graph"] = True
+            c["atmospheric_backgrounds"] = True
         return _render_premium_lcd(w, c, mode, frame, stamp)
     d.rectangle((0,0,WIDTH,120),fill=primary)
     # Theme-specific trim. The XP-inspired palette gets its familiar blue/green/yellow rhythm,
@@ -723,6 +1061,9 @@ def render_weather(w: dict[str,Any], c: dict[str,Any]) -> Image.Image:
     else:
         _card(d,(30,145,760,535),26); _icon(d,w["icon"],(55,170,310,410),w.get("is_night",False),frame,c)
         d.text((340,178),f'{w["temperature"]}{w["temperature_symbol"]}',font=font(82,True),fill=primary); d.text((340,282),w["description"],font=font(34,True),fill=P["black"])
+    if c.get("show_today_high_low", True) and w.get("daily"):
+        d.rounded_rectangle((490,480,742,522),radius=12,fill=P["white"],outline=primary,width=2)
+        d.text((616,501),f'TODAY HIGH {w["daily"][0]["high"]}° · LOW {w["daily"][0]["low"]}°',font=font(15,True),fill=primary,anchor="mm")
     # Compact instrumentation deck.
     sx=785; cw=180; gap=12; ch=92
     metrics=[
@@ -756,7 +1097,7 @@ def render_weather(w: dict[str,Any], c: dict[str,Any]) -> Image.Image:
     active_alert = w.get("alerts", [None])[0] if c.get("show_weather_alerts", True) and w.get("alerts") else None
     if active_alert:
         d.rounded_rectangle((30,618,1570,667),radius=14,fill=P["red"],outline=P["black"],width=3)
-        _fit(d, str(active_alert.get("title","WEATHER ALERT")).upper(), (48,624,520,660), 21, P["white"], True)
+        _fit(d, (("NWS: " if active_alert.get("official") else "ADVISORY: ") + str(active_alert.get("title", "WEATHER ALERT"))).upper(), (48,624,520,660), 21, P["white"], True)
         _fit(d, str(active_alert.get("message","")), (535,624,1548,660), 17, P["white"], False)
     else:
         d.text((38,632),"7-DAY OUTLOOK",font=font(24,True),fill=primary)
@@ -794,14 +1135,14 @@ def render_weather(w: dict[str,Any], c: dict[str,Any]) -> Image.Image:
         d.text((x+cwf//2,y0+372),f'UV {day["uv_max"] if day["uv_max"] is not None else "—"}',font=font(16,True),fill=P["green"],anchor="mm")
         _fit(d,day["description"],(x+10,y0+395,x+cwf-10,y0+472),19,P["black"],False)
     if c.get("show_system_status", False):
-        try:
-            from .system import system_info
-            info=system_info(); temp=info.get("temperature_c")
-            status_line=f'PI STATUS · CPU {info.get("cpu_percent","—")}% · {temp if temp is not None else "—"}°C · RAM {info.get("memory_percent","—")}% · DISK {info.get("disk_percent","—")}%'
-            d.rectangle((30,1168,1570,1198),fill=P["white"])
-            d.text((800,1183),status_line,font=font(15,True),fill=P["black"],anchor="mm")
-        except Exception:
-            pass
+        _draw_system_status_footer(
+            d, c,
+            text_color=P["black"],
+            border_color=primary,
+            background=P["white"],
+            left_text=f'UPDATED {stamp.strftime("%-I:%M %p").upper()}',
+            right_text='WEATHER STATION',
+        )
     # Plugin widgets are placed using the same 12 x 12 coordinate system as Screen Designer.
     if c.get("designer_enabled"):
         try:
@@ -833,7 +1174,9 @@ def render_weather(w: dict[str,Any], c: dict[str,Any]) -> Image.Image:
                 render_plugin(widget_id, img, box, context)
         except Exception:
             pass
-    canonical = quantize_spectra(img, fast=(mode == "lite" and c.get("lite_reduced_dither", True)))
+    img = _apply_quote_header(img, w, c, stamp)
+    img = _enhance_for_spectra(img, c)
+    canonical = quantize_spectra_quality(img, c.get("render_quality", "standard"), fast=(mode == "lite" and c.get("lite_reduced_dither", True)))
     return adapt_to_profile(canonical, c, fast=(mode == "lite" and c.get("lite_reduced_dither", True)))
 
 
@@ -863,6 +1206,27 @@ def quantize_for_colors(image: Image.Image, colors, fast: bool = False) -> Image
     flat.extend([0,0,0] * (256-len(names))); pal.putpalette(flat)
     dither = Image.Dither.NONE if fast else Image.Dither.FLOYDSTEINBERG
     return image.convert("RGB").quantize(palette=pal, dither=dither).convert("RGB")
+
+
+def quantize_spectra_quality(image: Image.Image, quality: str, fast: bool=False) -> Image.Image:
+    """Selective six-ink dithering: preserve crisp flat shapes and text.
+
+    HD uses the established Floyd-Steinberg quantizer. HD+ selectively keeps
+    undithered pixels in low-variance areas, reducing speckle in flat panels.
+    """
+    if fast or quality != "hd-plus":
+        return quantize_spectra(image, fast=fast)
+    rgb = image.convert("RGB")
+    dithered = quantize_spectra(rgb)
+    solid = quantize_spectra(rgb, fast=True)
+    gray = rgb.convert("L")
+    high = gray.filter(ImageFilter.MaxFilter(3))
+    low = gray.filter(ImageFilter.MinFilter(3))
+    from PIL import ImageChops
+    variation = ImageChops.difference(high, low)
+    # Keep smooth solid backgrounds clean, dither gradients and textured art.
+    flat_mask = variation.point(lambda v: 255 if v <= 5 else 0)
+    return Image.composite(solid, dithered, flat_mask)
 
 
 def quantize_spectra(image:Image.Image, fast:bool=False)->Image.Image:

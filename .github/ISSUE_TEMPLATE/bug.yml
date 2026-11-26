@@ -1,0 +1,20 @@
+name: Bug report
+description: Report a reproducible SpectraDash problem
+title: "[Bug] "
+labels: [bug]
+body:
+  - type: textarea
+    id: problem
+    attributes: {label: What happened?}
+    validations: {required: true}
+  - type: textarea
+    id: reproduce
+    attributes: {label: Steps to reproduce}
+    validations: {required: true}
+  - type: input
+    id: version
+    attributes: {label: SpectraDash version and display profile}
+    validations: {required: true}
+  - type: textarea
+    id: diagnostics
+    attributes: {label: Diagnostics or support bundle details}

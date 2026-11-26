@@ -10,7 +10,7 @@
 <body>
 <header class="topbar">
   <a class="brand" href="{{ url_for('dashboard') }}"><span class="brand-mark">S6</span><span>SpectraDash</span></a>
-  <nav><a href="{{ url_for('dashboard') }}">Dashboard</a><a href="{{ url_for('settings') }}">Settings</a><a href="{{ url_for('theme_gallery') }}">Themes</a><a href="{{ url_for('designer') }}">Screen Designer</a><a href="{{ url_for('plugins_page') }}">Plugins</a><a href="{{ url_for('diagnostics') }}">Diagnostics</a>{% if config is defined and config.developer_mode %}<a href="{{ url_for('developer') }}">Developer</a>{% endif %}</nav>
+  <nav><a href="{{ url_for('dashboard') }}">Dashboard</a><a href="{{ url_for('settings') }}">Settings</a><a href="{{ url_for('theme_gallery') }}">Themes</a><a href="{{ url_for('graphics_lab') }}">Graphics Lab</a><a href="{{ url_for('designer') }}">Screen Designer</a><a href="{{ url_for('plugins_page') }}">Plugins</a><a href="{{ url_for('diagnostics') }}">Diagnostics</a><a href="{{ url_for('weather_alerts_page') }}">Weather Alerts</a><a href="{{ url_for('weather_radar_page') }}">Radar</a>{% if config is defined and config.developer_mode %}<a href="{{ url_for('developer') }}">Developer</a>{% endif %}</nav>
   <span class="version">v{{ version }}</span>
 </header>
 <main>{% block content %}{% endblock %}</main>
