@@ -22,7 +22,7 @@
   <a href="community/TEST_PILOT_PROGRAM.md">Become a Tester</a>
 </p>
 
-> **Current release:** 8.0.0-rc18.3 Phase 1. The application is based on the verified RC18.2 program. A Raspberry Pi 4 installation from GitHub has been successfully completed and the Waveshare 13.3-inch Spectra 6 profile has been tested on physical hardware.
+> **Current release:** 8.0.0-rc19.2 — Photorealistic HD+ (pilot). Includes realistic weather artwork, Graphics Lab, official NWS alerts and optional browser radar. Earlier releases were tested on Raspberry Pi hardware; RC19.2 still requires physical-panel validation. See [release notes](docs/RC19_2_PHOTOREALISTIC_ICONS.md).
 
 ## See it in action
 
@@ -105,8 +105,8 @@ Weather downloads and automatic display refreshes begin after setup is completed
 Download the latest release ZIP from the repository's **Releases** page, then run:
 
 ```bash
-unzip SpectraDash-8.0.0-rc18.3.zip
-cd SpectraDash-8.0.0-rc18.3
+unzip SpectraDash-8.0.0-rc19.2.zip
+cd SpectraDash-8.0.0-rc19.2
 chmod +x install.sh uninstall.sh
 sudo ./install.sh
 ```
@@ -248,3 +248,11 @@ Read [CONTRIBUTING.md](CONTRIBUTING.md) before opening a pull request. Use GitHu
 ## License
 
 SpectraDash is released under the [MIT License](LICENSE). Waveshare drivers remain subject to their upstream license and are downloaded during installation rather than redistributed.
+
+### Spectra HD graphics
+
+RC18.5 adds a new **Premium HD flagship** layout plus Standard, **Spectra HD**, and **Spectra HD+** rendering modes. The HD paths improve edge clarity before six-color conversion and add optional atmospheric accents, current-day high/low, a daylight progress arc, a 12-hour pressure sparkline, and a short precipitation timeline. Existing Weather Station and Premium LCD layouts remain available.
+
+### Optional weather radar (RC18.9)
+
+Enable browser-only radar in Settings, then open **Radar** and press **Load radar map**. Details: [RC18.9 guide](docs/RC18_9_BROWSER_RADAR.md).

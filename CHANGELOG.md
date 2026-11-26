@@ -1,3 +1,53 @@
+## 8.0.0-rc19.2
+- Bundled original photorealistic weather icons for HD+ across layouts using shared icon renderer.
+- Default rendering quality set to HD+ for new installs. Existing saved settings remain unchanged.
+- Classic artwork preserved as fallback.
+
+## 8.0.0-rc19.0 — Spectra HD Graphics 2.0 pilot
+- Supersampled weather icons, lunar contrast refinement, selective HD+ dithering, improved label fitting, and on-demand Graphics Lab.
+- Preserves existing features and configuration.
+
+## 8.0.0-rc18.9 — Optional browser radar pilot
+
+- Opt-in browser radar map, with RainViewer overlay and OpenStreetMap base map.
+- Lazy-loaded on button click; no display daemon or physical refresh changes.
+- Provider failure messaging and NOAA radar fallback.
+
+## 8.0.0-rc18.8 — Official alert details
+
+- Added dedicated NWS alert details page in the web UI, with complete safety instructions and direct source links.
+- Preserved RC18.7 display rendering and refresh behavior.
+
+## 8.0.0-rc18.6 — Global Custom Quote Header
+
+- Added a configurable custom quote/header ribbon across Weather Station, Forecast First, Minimal, Premium LCD, Premium HD, and Screen Designer layouts.
+- Added fixed and rotating quote modes with up to 20 user messages.
+- Added left/center/right alignment, small/medium/large sizing, bold text, optional quotation marks, and palette-safe accent selection.
+- Added per-layout visibility controls.
+- Added automatic font fitting and a collision-free inset composition so quotes cannot overlap weather content.
+- Quote settings are included in configuration export/import and reset with normal display settings.
+
+## 8.0.0-rc18.5 — Spectra HD Graphics
+
+- Added new **Premium HD** flagship layout option without removing existing Weather Station or Premium LCD layouts.
+- Added Standard, Spectra HD, and Spectra HD+ rendering quality modes.
+- Added palette-aware contrast, sharpening, and edge preparation before six-color conversion.
+- Added atmospheric condition accents for clear, night, rain, storm, and snow scenes.
+- Added current-day high/low instrument.
+- Added daylight progress arc with sunrise and sunset endpoints.
+- Added 12-hour pressure trend sparkline.
+- Added compact precipitation probability timeline.
+- Preserved realistic Moon, premium illustrated icons, system-health footer, alerts, Screen Designer, and existing display profiles.
+- Kept all new graphics optional so Pi Zero 2 W users can choose Standard or Lite rendering.
+
+## 8.0.0-rc18.4 — Display Health & Visual Polish
+
+- Unified Raspberry Pi health/status footer across Weather Station and Premium LCD e-paper layouts.
+- Added GOOD / WARM / ATTENTION health badge based on CPU temperature, CPU load, RAM, and disk use.
+- Added uptime to the e-paper status footer.
+- Premium LCD now shows the same full CPU / temperature / RAM / disk health information as Weather Station.
+- Preserved existing layout, forecast, alert, icon, and theme behavior.
+
 # Changelog
 
 ## 8.0.0-rc18.3 — Phase 1 GitHub Polish

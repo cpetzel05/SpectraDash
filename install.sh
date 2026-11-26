@@ -13,7 +13,7 @@ DATA_DIR=/var/lib/spectradash
 DRIVER_DIR=/opt/waveshare-e-paper
 SOURCE_DIR=$(cd "$(dirname "$0")" && pwd)
 
-echo "Installing SpectraDash 8.0.0-rc18.2 for $INSTALL_USER..."
+echo "Installing SpectraDash 8.0.0-rc19.2 for $INSTALL_USER..."
 apt-get update
 apt-get install -y python3 python3-venv python3-pip python3-dev git libjpeg-dev zlib1g-dev libopenjp2-7 libtiff6 fonts-dejavu-core python3-spidev python3-gpiozero rsync
 
@@ -21,7 +21,7 @@ mkdir -p "$APP_DIR" "$DATA_DIR/uploads"
 if [[ -f "$DATA_DIR/config.json" ]]; then
   cp "$DATA_DIR/config.json" "$DATA_DIR/config.json.backup.$(date +%Y%m%d%H%M%S)"
 fi
-rsync -a --delete --exclude '.venv' --exclude '__pycache__' --exclude '.pytest_cache' --exclude '*.pyc' "$SOURCE_DIR/" "$APP_DIR/"
+rsync -a --delete --exclude '.git' --exclude '.venv' --exclude '__pycache__' --exclude '.pytest_cache' --exclude '*.pyc' "$SOURCE_DIR/" "$APP_DIR/"
 
 python3 -m venv --system-site-packages "$APP_DIR/.venv"
 "$APP_DIR/.venv/bin/python" -m pip install --upgrade pip
