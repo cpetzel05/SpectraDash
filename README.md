@@ -24,6 +24,22 @@
 
 > **Current release:** 8.0.0-rc19.2 — Photorealistic HD+ (pilot). Includes realistic weather artwork, Graphics Lab, official NWS alerts and optional browser radar. Earlier releases were tested on Raspberry Pi hardware; RC19.2 still requires physical-panel validation. See [release notes](docs/RC19_2_PHOTOREALISTIC_ICONS.md).
 
+## New in RC19.2: Photorealistic HD+ Graphics
+
+HD+ now uses bundled realistic weather artwork instead of simply sharpening the classic icons. Sunshine, clouds, rain, thunderstorms, snow, fog and nighttime moon imagery have their own illustrations. Standard and HD retain the original graphics. Compatible layouts share the new icon renderer.
+
+### Full-color artwork
+
+![RC19.2 bundled photorealistic weather artwork](screenshots/rc19.2-photorealistic-artwork.png)
+
+### Spectra 6 software rendering
+
+![RC19.2 artwork converted by the SpectraDash six-color renderer](screenshots/rc19.2-spectra6-artwork.png)
+
+These are actual bundled artwork and software-rendered icon samples, not photographs of a physical panel. The six-color panel cannot reproduce the full-color originals exactly. Existing lunar phase widgets retain their phase renderer.
+
+**Enable it:** Settings → Spectra rendering quality → HD+ → Save → Refresh. Existing installations retain their saved quality setting. Graphics Lab can compare modes and apply a physical refresh. See [RC19.2 documentation](docs/RC19_2_PHOTOREALISTIC_ICONS.md).
+
 ## See it in action
 
 <p align="center">
@@ -165,6 +181,8 @@ See the full [Uninstall Guide](docs/UNINSTALL.md).
 A software preview does not automatically mean a display has been physically verified. See [Supported Displays](community/SUPPORTED_DISPLAYS.md) and [Display Configuration](docs/DISPLAY_CONFIGURATION.md).
 
 ## Screenshots
+
+See the [new RC19.2 photorealistic artwork](#new-in-rc192-photorealistic-hd-graphics) above. The following dashboard previews are from earlier releases.
 
 ### 13.3-inch Weather Station
 
